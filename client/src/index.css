@@ -119,6 +119,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    direction: rtl;
+    font-family: 'Cairo', system-ui, -apple-system, sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

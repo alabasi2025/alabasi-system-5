@@ -1,17 +1,11 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, index } from "drizzle-orm/mysql-core";
+import { relations } from "drizzle-orm";
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +19,310 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * العملات المدعومة في النظام
+ */
+export const currencies = mysqlTable("currencies", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 10 }).notNull().unique(), // SAR, USD, EUR
+  nameAr: varchar("nameAr", { length: 100 }).notNull(),
+  nameEn: varchar("nameEn", { length: 100 }).notNull(),
+  symbol: varchar("symbol", { length: 10 }).notNull(), // ر.س, $, €
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Currency = typeof currencies.$inferSelect;
+export type InsertCurrency = typeof currencies.$inferInsert;
+
+/**
+ * الفروع
+ */
+export const branches = mysqlTable("branches", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  isMain: boolean("isMain").default(false).notNull(), // الفرع الرئيسي
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+});
+
+export type Branch = typeof branches.$inferSelect;
+export type InsertBranch = typeof branches.$inferInsert;
+
+/**
+ * أنواع الحسابات الرئيسية (الأصول، الخصوم، الإيرادات، المصروفات، حقوق الملكية)
+ */
+export const accountCategories = mysqlTable("accountCategories", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 100 }).notNull(),
+  nameEn: varchar("nameEn", { length: 100 }),
+  type: mysqlEnum("type", ["asset", "liability", "equity", "revenue", "expense"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AccountCategory = typeof accountCategories.$inferSelect;
+export type InsertAccountCategory = typeof accountCategories.$inferInsert;
+
+/**
+ * دليل الحسابات (Chart of Accounts) - هيكل شجري
+ */
+export const chartOfAccounts = mysqlTable("chartOfAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  parentId: int("parentId"), // للحسابات الفرعية
+  categoryId: int("categoryId").references(() => accountCategories.id),
+  level: int("level").default(1).notNull(), // مستوى الحساب في الشجرة
+  isParent: boolean("isParent").default(false).notNull(), // حساب رئيسي أم فرعي
+  isActive: boolean("isActive").default(true).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  parentIdx: index("parent_idx").on(table.parentId),
+  categoryIdx: index("category_idx").on(table.categoryId),
+}));
+
+export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
+export type InsertChartOfAccount = typeof chartOfAccounts.$inferInsert;
+
+/**
+ * العملات المفضلة لكل حساب في الدليل
+ */
+export const accountCurrencies = mysqlTable("accountCurrencies", {
+  id: int("id").autoincrement().primaryKey(),
+  accountId: int("accountId").notNull().references(() => chartOfAccounts.id, { onDelete: "cascade" }),
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  accountIdx: index("account_idx").on(table.accountId),
+  currencyIdx: index("currency_idx").on(table.currencyId),
+}));
+
+export type AccountCurrency = typeof accountCurrencies.$inferSelect;
+export type InsertAccountCurrency = typeof accountCurrencies.$inferInsert;
+
+/**
+ * أنواع الحسابات التحليلية (صندوق، بنك، صراف، محفظة، عميل، مورد، مخزن)
+ */
+export const analyticalAccountTypes = mysqlTable("analyticalAccountTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 100 }).notNull(),
+  nameEn: varchar("nameEn", { length: 100 }),
+  icon: varchar("icon", { length: 50 }), // أيقونة من lucide-react
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AnalyticalAccountType = typeof analyticalAccountTypes.$inferSelect;
+export type InsertAnalyticalAccountType = typeof analyticalAccountTypes.$inferInsert;
+
+/**
+ * الحسابات التحليلية (Analytical Accounts)
+ * مرتبطة بحساب في دليل الحسابات وفرع محدد
+ */
+export const analyticalAccounts = mysqlTable("analyticalAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  chartAccountId: int("chartAccountId").notNull().references(() => chartOfAccounts.id),
+  typeId: int("typeId").notNull().references(() => analyticalAccountTypes.id),
+  branchId: int("branchId").notNull().references(() => branches.id),
+  openingBalance: int("openingBalance").default(0).notNull(), // الرصيد الافتتاحي بالقروش
+  currentBalance: int("currentBalance").default(0).notNull(), // الرصيد الحالي بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  isActive: boolean("isActive").default(true).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  chartAccountIdx: index("chart_account_idx").on(table.chartAccountId),
+  typeIdx: index("type_idx").on(table.typeId),
+  branchIdx: index("branch_idx").on(table.branchId),
+}));
+
+export type AnalyticalAccount = typeof analyticalAccounts.$inferSelect;
+export type InsertAnalyticalAccount = typeof analyticalAccounts.$inferInsert;
+
+/**
+ * السندات (قبض وصرف)
+ */
+export const vouchers = mysqlTable("vouchers", {
+  id: int("id").autoincrement().primaryKey(),
+  voucherNumber: varchar("voucherNumber", { length: 50 }).notNull().unique(),
+  type: mysqlEnum("type", ["receipt", "payment"]).notNull(), // قبض أو صرف
+  voucherType: mysqlEnum("voucherType", ["cash", "bank"]).notNull(), // نقدي أو بنكي
+  date: timestamp("date").notNull(),
+  amount: int("amount").notNull(), // المبلغ بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  fromAccountId: int("fromAccountId").references(() => analyticalAccounts.id), // الحساب المدين
+  toAccountId: int("toAccountId").references(() => analyticalAccounts.id), // الحساب الدائن
+  branchId: int("branchId").notNull().references(() => branches.id),
+  statement: text("statement").notNull(), // البيان
+  referenceNumber: varchar("referenceNumber", { length: 100 }), // رقم مرجعي (شيك، حوالة، إلخ)
+  attachmentUrl: text("attachmentUrl"), // رابط صورة الفاتورة
+  status: mysqlEnum("status", ["draft", "approved", "cancelled"]).default("approved").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+  approvedAt: timestamp("approvedAt"),
+  approvedBy: int("approvedBy").references(() => users.id),
+}, (table) => ({
+  dateIdx: index("date_idx").on(table.date),
+  typeIdx: index("type_idx").on(table.type),
+  branchIdx: index("branch_idx").on(table.branchId),
+  fromAccountIdx: index("from_account_idx").on(table.fromAccountId),
+  toAccountIdx: index("to_account_idx").on(table.toAccountId),
+}));
+
+export type Voucher = typeof vouchers.$inferSelect;
+export type InsertVoucher = typeof vouchers.$inferInsert;
+
+/**
+ * القيود اليومية (Journal Entries)
+ * يتم إنشاؤها تلقائيًا من السندات أو يدويًا
+ */
+export const journalEntries = mysqlTable("journalEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  entryNumber: varchar("entryNumber", { length: 50 }).notNull().unique(),
+  date: timestamp("date").notNull(),
+  description: text("description").notNull(),
+  voucherId: int("voucherId").references(() => vouchers.id), // مرتبط بسند إن وُجد
+  branchId: int("branchId").notNull().references(() => branches.id),
+  status: mysqlEnum("status", ["draft", "posted", "cancelled"]).default("posted").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  dateIdx: index("date_idx").on(table.date),
+  voucherIdx: index("voucher_idx").on(table.voucherId),
+  branchIdx: index("branch_idx").on(table.branchId),
+}));
+
+export type JournalEntry = typeof journalEntries.$inferSelect;
+export type InsertJournalEntry = typeof journalEntries.$inferInsert;
+
+/**
+ * تفاصيل القيود اليومية (مدين ودائن)
+ */
+export const journalEntryLines = mysqlTable("journalEntryLines", {
+  id: int("id").autoincrement().primaryKey(),
+  entryId: int("entryId").notNull().references(() => journalEntries.id, { onDelete: "cascade" }),
+  accountId: int("accountId").notNull().references(() => analyticalAccounts.id),
+  type: mysqlEnum("type", ["debit", "credit"]).notNull(), // مدين أو دائن
+  amount: int("amount").notNull(), // المبلغ بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  entryIdx: index("entry_idx").on(table.entryId),
+  accountIdx: index("account_idx").on(table.accountId),
+}));
+
+export type JournalEntryLine = typeof journalEntryLines.$inferSelect;
+export type InsertJournalEntryLine = typeof journalEntryLines.$inferInsert;
+
+/**
+ * الموظفون
+ */
+export const employees = mysqlTable("employees", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  position: varchar("position", { length: 100 }),
+  branchId: int("branchId").notNull().references(() => branches.id),
+  salary: int("salary").notNull(), // الراتب بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  hireDate: timestamp("hireDate").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 320 }),
+  address: text("address"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  branchIdx: index("branch_idx").on(table.branchId),
+}));
+
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = typeof employees.$inferInsert;
+
+/**
+ * المخزون
+ */
+export const inventory = mysqlTable("inventory", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  category: varchar("category", { length: 100 }),
+  branchId: int("branchId").notNull().references(() => branches.id),
+  quantity: int("quantity").default(0).notNull(),
+  unitPrice: int("unitPrice").notNull(), // سعر الوحدة بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  minQuantity: int("minQuantity").default(0), // الحد الأدنى للكمية
+  isActive: boolean("isActive").default(true).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  branchIdx: index("branch_idx").on(table.branchId),
+}));
+
+export type Inventory = typeof inventory.$inferSelect;
+export type InsertInventory = typeof inventory.$inferInsert;
+
+/**
+ * الأصول الثابتة
+ */
+export const assets = mysqlTable("assets", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 200 }).notNull(),
+  nameEn: varchar("nameEn", { length: 200 }),
+  category: varchar("category", { length: 100 }),
+  branchId: int("branchId").notNull().references(() => branches.id),
+  purchaseDate: timestamp("purchaseDate").notNull(),
+  purchasePrice: int("purchasePrice").notNull(), // سعر الشراء بالقروش
+  currentValue: int("currentValue").notNull(), // القيمة الحالية بالقروش
+  currencyId: int("currencyId").notNull().references(() => currencies.id),
+  depreciationRate: int("depreciationRate").default(0), // نسبة الإهلاك (بالنسبة المئوية × 100)
+  isActive: boolean("isActive").default(true).notNull(),
+  description: text("description"),
+  serialNumber: varchar("serialNumber", { length: 100 }),
+  location: text("location"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  branchIdx: index("branch_idx").on(table.branchId),
+}));
+
+export type Asset = typeof assets.$inferSelect;
+export type InsertAsset = typeof assets.$inferInsert;
+
+/**
+ * سجل محادثات المساعد الذكي
+ */
+export const aiConversations = mysqlTable("aiConversations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  response: text("response").notNull(),
+  action: varchar("action", { length: 100 }), // نوع الإجراء (create_voucher, create_account, etc.)
+  actionData: text("actionData"), // JSON للبيانات المنفذة
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("user_idx").on(table.userId),
+  createdAtIdx: index("created_at_idx").on(table.createdAt),
+}));
+
+export type AiConversation = typeof aiConversations.$inferSelect;
+export type InsertAiConversation = typeof aiConversations.$inferInsert;
