@@ -17,6 +17,8 @@ import {
   inventory,
   assets,
   aiConversations,
+  units,
+  organizations,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -509,4 +511,74 @@ export async function getDashboardStats(branchId?: number) {
     totalExpenses,
     netProfit,
   };
+}
+
+// ============ Units ============
+export async function getAllUnits() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(units).where(eq(units.isActive, true));
+}
+
+export async function getUnitById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(units).where(eq(units.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createUnit(data: typeof units.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(units).values(data);
+}
+
+export async function updateUnit(id: number, data: Partial<typeof units.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(units).set(data).where(eq(units.id, id));
+}
+
+export async function deleteUnit(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(units).set({ isActive: false }).where(eq(units.id, id));
+}
+
+// ============ Organizations ============
+export async function getAllOrganizations(unitId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let conditions = [eq(organizations.isActive, true)];
+  if (unitId) {
+    conditions.push(eq(organizations.unitId, unitId));
+  }
+  
+  return db.select().from(organizations).where(and(...conditions));
+}
+
+export async function getOrganizationById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(organizations).where(eq(organizations.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createOrganization(data: typeof organizations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(organizations).values(data);
+}
+
+export async function updateOrganization(id: number, data: Partial<typeof organizations.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(organizations).set(data).where(eq(organizations.id, id));
+}
+
+export async function deleteOrganization(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(organizations).set({ isActive: false }).where(eq(organizations.id, id));
 }

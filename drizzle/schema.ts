@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, index } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal, index, unique } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
 /**
@@ -326,3 +326,131 @@ export const aiConversations = mysqlTable("aiConversations", {
 
 export type AiConversation = typeof aiConversations.$inferSelect;
 export type InsertAiConversation = typeof aiConversations.$inferInsert;
+
+/**
+ * الوحدات - Units (المستوى الأعلى في الهيكلية)
+ */
+export const units = mysqlTable("units", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+});
+
+export type Unit = typeof units.$inferSelect;
+export type InsertUnit = typeof units.$inferInsert;
+
+/**
+ * المؤسسات - Organizations (مستوى وسيط بين الوحدات والفروع)
+ */
+export const organizations = mysqlTable("organizations", {
+  id: int("id").autoincrement().primaryKey(),
+  unitId: int("unitId").notNull().references(() => units.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  taxNumber: varchar("taxNumber", { length: 50 }),
+  address: text("address"),
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 320 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+}, (table) => ({
+  unitIdIdx: index("unitId_idx").on(table.unitId),
+  codeUnitUnique: unique("code_unit_unique").on(table.code, table.unitId),
+}));
+
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = typeof organizations.$inferInsert;
+
+/**
+ * الحسابات الوسيطة - Clearing Accounts
+ * للربط بين الوحدات/المؤسسات/الفروع
+ */
+export const clearingAccounts = mysqlTable("clearingAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  accountId: int("accountId").notNull().references(() => analyticalAccounts.id),
+  clearingType: mysqlEnum("clearingType", [
+    "inter_branch",
+    "inter_organization",
+    "inter_unit"
+  ]).notNull(),
+  entity1Type: mysqlEnum("entity1Type", ["branch", "organization", "unit"]).notNull(),
+  entity1Id: int("entity1Id").notNull(),
+  entity2Type: mysqlEnum("entity2Type", ["branch", "organization", "unit"]).notNull(),
+  entity2Id: int("entity2Id").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  accountIdIdx: index("accountId_idx").on(table.accountId),
+  entitiesUnique: unique("entities_unique").on(
+    table.clearingType,
+    table.entity1Type,
+    table.entity1Id,
+    table.entity2Type,
+    table.entity2Id
+  ),
+}));
+
+export type ClearingAccount = typeof clearingAccounts.$inferSelect;
+export type InsertClearingAccount = typeof clearingAccounts.$inferInsert;
+
+/**
+ * الأنماط المتعلمة - Learned Patterns (للذكاء الاصطناعي)
+ */
+export const learnedPatterns = mysqlTable("learned_patterns", {
+  id: int("id").autoincrement().primaryKey(),
+  keyword: varchar("keyword", { length: 255 }).notNull(),
+  accountId: int("accountId").notNull().references(() => chartOfAccounts.id),
+  frequency: int("frequency").default(1).notNull(),
+  weight: int("weight").default(100).notNull(), // وزن الأهمية (0-100)
+  lastUsed: timestamp("lastUsed").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  keywordIdx: index("keyword_idx").on(table.keyword),
+  accountIdIdx: index("accountId_idx").on(table.accountId),
+  keywordAccountUnique: unique("keyword_account_unique").on(table.keyword, table.accountId),
+}));
+
+export type LearnedPattern = typeof learnedPatterns.$inferSelect;
+export type InsertLearnedPattern = typeof learnedPatterns.$inferInsert;
+
+/**
+ * سجل الأوامر - Command History
+ */
+export const commandHistory = mysqlTable("command_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  command: text("command").notNull(),
+  commandType: mysqlEnum("commandType", [
+    "create_unit",
+    "create_organization",
+    "create_branch",
+    "create_chart",
+    "create_analytical_account",
+    "create_journal_entry",
+    "create_payment_voucher",
+    "create_receipt_voucher",
+    "query_data",
+    "generate_report",
+    "other"
+  ]).notNull(),
+  status: mysqlEnum("status", ["success", "failed", "pending"]).default("pending").notNull(),
+  result: text("result"), // JSON
+  errorMessage: text("errorMessage"),
+  executionTime: int("executionTime"), // milliseconds
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("userId_idx").on(table.userId),
+  statusIdx: index("status_idx").on(table.status),
+}));
+
+export type CommandHistory = typeof commandHistory.$inferSelect;
+export type InsertCommandHistory = typeof commandHistory.$inferInsert;

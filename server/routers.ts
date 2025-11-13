@@ -319,6 +319,99 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ Units ============
+  units: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getAllUnits();
+    }),
+    getById: protectedProcedure.input(z.number()).query(async ({ input }) => {
+      return await db.getUnitById(input);
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string(),
+          code: z.string(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        return await db.createUnit({
+          ...input,
+          createdBy: ctx.user.id,
+        });
+      }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().optional(),
+          description: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...updateData } = input;
+        await db.updateUnit(id, updateData);
+        return { success: true };
+      }),
+    delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+      await db.deleteUnit(input);
+      return { success: true };
+    }),
+  }),
+
+  // ============ Organizations ============
+  organizations: router({
+    list: protectedProcedure
+      .input(z.object({ unitId: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return await db.getAllOrganizations(input?.unitId);
+      }),
+    getById: protectedProcedure.input(z.number()).query(async ({ input }) => {
+      return await db.getOrganizationById(input);
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          unitId: z.number(),
+          name: z.string(),
+          code: z.string(),
+          taxNumber: z.string().optional(),
+          address: z.string().optional(),
+          phone: z.string().optional(),
+          email: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        return await db.createOrganization({
+          ...input,
+          createdBy: ctx.user.id,
+        });
+      }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().optional(),
+          taxNumber: z.string().optional(),
+          address: z.string().optional(),
+          phone: z.string().optional(),
+          email: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...updateData } = input;
+        await db.updateOrganization(id, updateData);
+        return { success: true };
+      }),
+    delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+      await db.deleteOrganization(input);
+      return { success: true };
+    }),
+  }),
+
   // ============ AI Assistant ============
   ai: router({
     chat: protectedProcedure

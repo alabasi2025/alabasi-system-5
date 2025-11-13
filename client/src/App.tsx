@@ -11,7 +11,7 @@ import AnalyticalAccounts from "./pages/AnalyticalAccounts";
 import PaymentVoucher from "./pages/PaymentVoucher";
 import ReceiptVoucher from "./pages/ReceiptVoucher";
 import VouchersList from "./pages/VouchersList";
-import AIAssistant from "./pages/AIAssistant";
+
 import Reports from "./pages/Reports";
 
 function Router() {
@@ -23,7 +23,7 @@ function Router() {
       <Route path="/vouchers" component={() => <DashboardLayout><VouchersList /></DashboardLayout>} />
       <Route path="/vouchers/payment" component={() => <DashboardLayout><PaymentVoucher /></DashboardLayout>} />
       <Route path="/vouchers/receipt" component={() => <DashboardLayout><ReceiptVoucher /></DashboardLayout>} />
-      <Route path="/ai-assistant" component={() => <DashboardLayout><AIAssistant /></DashboardLayout>} />
+
       <Route path="/reports" component={() => <DashboardLayout><Reports /></DashboardLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
