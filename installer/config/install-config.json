@@ -1,17 +1,17 @@
 {
   "project": {
     "name": "accounting-system",
-    "displayName": "النظام المحاسبي المتكامل",
-    "nameEn": "Integrated Accounting System",
+    "displayName": "نظام العباسي رقم 5",
+    "nameEn": "Al-Abasi System 5",
     "type": "web-app",
-    "version": "1.0.0",
-    "description": "نظام محاسبي احترافي مع مساعد ذكاء اصطناعي",
-    "descriptionEn": "Professional accounting system with AI assistant",
-    "author": "Manus AI",
+    "version": "5.0.0",
+    "description": "نظام محاسبي ذكي متكامل مع 18 جدول وذكاء اصطناعي متقدم",
+    "descriptionEn": "Intelligent integrated accounting system with 18 tables and advanced AI",
+    "author": "alabasi2025",
     "license": "MIT"
   },
   "github": {
-    "repo": "alabasi2025/accounting-system",
+    "repo": "alabasi2025/alabasi-system-5",
     "branch": "main",
     "token": "",
     "autoUpdate": true,
@@ -21,7 +21,7 @@
   "installation": {
     "path": "C:\\Projects\\accounting-system",
     "commands": {
-      "clone": "git clone https://github.com/alabasi2025/accounting-system.git .",
+      "clone": "git clone https://github.com/alabasi2025/alabasi-system-5.git .",
       "install": "pnpm install",
       "build": "pnpm build",
       "start": "pnpm run dev",
@@ -63,11 +63,11 @@
   },
   "service": {
     "enabled": true,
-    "name": "AccountingSystem",
-    "displayName": "النظام المحاسبي المتكامل",
-    "displayNameEn": "Integrated Accounting System",
-    "description": "نظام محاسبي احترافي مع قدرات الذكاء الاصطناعي",
-    "descriptionEn": "Professional accounting system with AI capabilities",
+    "name": "AlabasiSystem5",
+    "displayName": "نظام العباسي رقم 5",
+    "displayNameEn": "Al-Abasi System 5",
+    "description": "نظام محاسبي ذكي متكامل - 18 جدول وAI متقدم",
+    "descriptionEn": "Intelligent integrated accounting system - 18 tables with advanced AI",
     "startMode": "auto",
     "executable": "node",
     "arguments": "server/_core/index.js",

@@ -1,9 +1,9 @@
-# 🚀 مثبت النظام المحاسبي المتكامل
-# Integrated Accounting System Installer
+# 🚀 مثبت نظام العباسي رقم 5
+# Al-Abasi System 5 Installer
 
-نظام تثبيت ذكي للنظام المحاسبي المتكامل مع تكامل GitHub والذكاء الاصطناعي.
+نظام تثبيت ذكي لنظام العباسي رقم 5 مع تكامل GitHub وذكاء اصطناعي متقدم.
 
-Smart installation system for the Integrated Accounting System with GitHub integration and AI capabilities.
+Smart installation system for Al-Abasi System 5 with GitHub integration and advanced AI.
 
 ---
 
@@ -67,8 +67,8 @@ Will be installed automatically if not present:
 
 1. **تحميل المشروع / Download Project**
    ```bash
-   git clone https://github.com/alabasi2025/accounting-system.git
-   cd accounting-system/installer
+   git clone https://github.com/alabasi2025/alabasi-system-5.git
+   cd alabasi-system-5/installer
    ```
 
 2. **تشغيل المثبت / Run Installer**
@@ -184,7 +184,7 @@ installer/
 {
   "project": {
     "name": "accounting-system",
-    "displayName": "النظام المحاسبي المتكامل"
+    "displayName": "نظام العباسي رقم 5"
   },
   "installation": {
     "path": "C:\\Projects\\accounting-system"
@@ -233,9 +233,9 @@ Get-Content C:\Projects\accounting-system\logs\latest.log -Tail 50
 ## 📞 الدعم / Support
 
 ### الموارد / Resources
-- 📚 **التوثيق / Documentation:** [GitHub Wiki](https://github.com/alabasi2025/accounting-system/wiki)
-- 🐛 **الإبلاغ عن مشاكل / Report Issues:** [GitHub Issues](https://github.com/alabasi2025/accounting-system/issues)
-- 💬 **المناقشات / Discussions:** [GitHub Discussions](https://github.com/alabasi2025/accounting-system/discussions)
+- - 📚 **التوثيق / Documentation:** [GitHub Wiki](https://github.com/alabasi2025/alabasi-system-5/wiki)
+- 🐛 **الإبلاغ عن مشاكل / Report Issues:** [GitHub Issues](https://github.com/alabasi2025/alabasi-system-5/issues)
+- 💬 **المناقشات / Discussions:** [GitHub Discussions](https://github.com/alabasi2025/alabasi-system-5/discussions)
 
 ### الاتصال / Contact
 - 🌐 **الموقع / Website:** https://manus.im
@@ -259,9 +259,9 @@ MIT License - Free to use in commercial and personal projects.
 
 ---
 
-**صُنع بـ ❤️ بواسطة Manus AI**
+**صُنع بـ ❤️ بواسطة alabasi2025**
 
-**Made with ❤️ by Manus AI**
+**Made with ❤️ by alabasi2025**
 
-**الإصدار / Version:** 1.0.0  
-**التاريخ / Date:** نوفمبر 2025 / November 2025
+**الإصدار / Version:** 5.0.0  
+**التاريخ / Date:** يناير 2025 / January 2025

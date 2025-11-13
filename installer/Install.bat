@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title النظام المحاسبي المتكامل - التثبيت / Accounting System - Installation
+title نظام العباسي رقم 5 - التثبيت / Al-Abasi System 5 - Installation
 
 :: التحقق من صلاحيات المسؤول
 net session >nul 2>&1

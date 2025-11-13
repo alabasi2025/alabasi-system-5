@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileDown, Printer, Calendar } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export default function TrialBalance() {
   // تاريخ ميزان المراجعة
@@ -34,8 +36,38 @@ export default function TrialBalance() {
     window.print();
   };
 
+  const exportMutation = trpc.reports.exportTrialBalance.useMutation({
+    onSuccess: (data) => {
+      // تحويل base64 إلى blob وتحميله
+      const byteCharacters = atob(data.data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("تم تصدير ميزان المراجعة بنجاح");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء التصدير");
+    },
+  });
+
   const handleExport = () => {
-    console.log("Export to Excel");
+    exportMutation.mutate({
+      startDate: fromDate,
+      endDate: toDate,
+    });
   };
 
   return (
