@@ -538,6 +538,27 @@ export const appRouter = router({
 
   // ============ AI Assistant ============
   ai: router({
+    processCommand: protectedProcedure
+      .input(
+        z.object({
+          message: z.string(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { processAccountingCommand } = await import("./ai-processor");
+        const result = await processAccountingCommand(input.message, ctx.user.id);
+
+        // Save conversation
+        await db.saveAiConversation({
+          userId: ctx.user.id,
+          message: input.message,
+          response: result.response,
+          action: result.action,
+          actionData: result.data ? JSON.stringify(result.data) : null,
+        });
+
+        return result;
+      }),
     chat: protectedProcedure
       .input(
         z.object({
@@ -545,19 +566,18 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        // TODO: Implement AI chat logic
-        const response = "سأقوم بمساعدتك في تنفيذ هذا الأمر قريبًا.";
+        const { processAccountingCommand } = await import("./ai-processor");
+        const result = await processAccountingCommand(input.message, ctx.user.id);
 
-        // Save conversation
         await db.saveAiConversation({
           userId: ctx.user.id,
           message: input.message,
-          response,
-          action: null,
-          actionData: null,
+          response: result.response,
+          action: result.action,
+          actionData: result.data ? JSON.stringify(result.data) : null,
         });
 
-        return { response };
+        return { response: result.response };
       }),
     conversations: protectedProcedure.query(async ({ ctx }) => {
       return await db.getAiConversations(ctx.user.id);
