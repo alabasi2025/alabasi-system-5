@@ -14,6 +14,11 @@ import ReceiptVoucher from "./pages/ReceiptVoucher";
 import VouchersList from "./pages/VouchersList";
 
 import Reports from "./pages/Reports";
+import Employees from "./pages/Employees";
+import Inventory from "./pages/Inventory";
+import Assets from "./pages/Assets";
+import Units from "./pages/Units";
+import AIAssistant from "./pages/AIAssistant";
 
 function Router() {
   return (
@@ -25,7 +30,15 @@ function Router() {
       <Route path="/vouchers/payment" component={() => <DashboardLayout><PaymentVoucher /></DashboardLayout>} />
       <Route path="/vouchers/receipt" component={() => <DashboardLayout><ReceiptVoucher /></DashboardLayout>} />
 
+      <Route path="/payment-voucher" component={() => <DashboardLayout><PaymentVoucher /></DashboardLayout>} />
+      <Route path="/receipt-voucher" component={() => <DashboardLayout><ReceiptVoucher /></DashboardLayout>} />
+      <Route path="/vouchers-list" component={() => <DashboardLayout><VouchersList /></DashboardLayout>} />
+      <Route path="/ai-assistant" component={() => <DashboardLayout><AIAssistant /></DashboardLayout>} />
       <Route path="/reports" component={() => <DashboardLayout><Reports /></DashboardLayout>} />
+      <Route path="/inventory" component={() => <DashboardLayout><Inventory /></DashboardLayout>} />
+      <Route path="/employees" component={() => <DashboardLayout><Employees /></DashboardLayout>} />
+      <Route path="/assets" component={() => <DashboardLayout><Assets /></DashboardLayout>} />
+      <Route path="/units" component={() => <DashboardLayout><Units /></DashboardLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -21,15 +21,39 @@ import {
 } from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  LogOut, 
+  PanelLeft, 
+  Users, 
+  BookOpen, 
+  FileText, 
+  Receipt, 
+  BarChart3, 
+  Package, 
+  Briefcase, 
+  Building2, 
+  Wallet, 
+  Bot
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "الرئيسية", path: "/" },
+  { icon: BookOpen, label: "دليل الحسابات", path: "/chart-of-accounts" },
+  { icon: Wallet, label: "الحسابات التحليلية", path: "/analytical-accounts" },
+  { icon: Receipt, label: "سند صرف", path: "/payment-voucher" },
+  { icon: FileText, label: "سند قبض", path: "/receipt-voucher" },
+  { icon: FileText, label: "قائمة السندات", path: "/vouchers-list" },
+  { icon: Bot, label: "المساعد الذكي", path: "/ai-assistant" },
+  { icon: BarChart3, label: "التقارير المالية", path: "/reports" },
+  { icon: Package, label: "المخزون", path: "/inventory" },
+  { icon: Users, label: "الموظفين", path: "/employees" },
+  { icon: Briefcase, label: "الأصول", path: "/assets" },
+  { icon: Building2, label: "الوحدات والمؤسسات", path: "/units" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
