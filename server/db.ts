@@ -22,6 +22,7 @@ import {
   roles,
   permissions,
   userRoles,
+  settings,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -803,4 +804,63 @@ export async function checkPermission(userId: number, resource: string, action: 
   }
   
   return false;
+}
+
+// ============================================================
+// Settings Functions
+// ============================================================
+
+export async function getAllSettings() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(settings);
+}
+
+export async function getSettingByKey(key: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getSettingsByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(settings).where(eq(settings.category, category));
+}
+
+export async function upsertSetting(data: {
+  key: string;
+  value: string;
+  category: string;
+  description?: string;
+  updatedBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getSettingByKey(data.key);
+  
+  if (existing) {
+    await db
+      .update(settings)
+      .set({
+        value: data.value,
+        updatedBy: data.updatedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(settings.key, data.key));
+  } else {
+    await db.insert(settings).values(data);
+  }
+}
+
+export async function deleteSetting(key: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(settings).where(eq(settings.key, key));
 }

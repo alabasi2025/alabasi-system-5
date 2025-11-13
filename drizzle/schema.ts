@@ -507,3 +507,19 @@ export const userRoles = mysqlTable("userRoles", {
 
 export type UserRole = typeof userRoles.$inferSelect;
 export type InsertUserRole = typeof userRoles.$inferInsert;
+
+/**
+ * إعدادات النظام
+ */
+export const settings = mysqlTable("settings", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(), // setting_key
+  value: text("value"), // setting_value (JSON string)
+  category: varchar("category", { length: 50 }).notNull(), // general, system, backup
+  description: text("description"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedBy: int("updatedBy").references(() => users.id),
+});
+
+export type Setting = typeof settings.$inferSelect;
+export type InsertSetting = typeof settings.$inferInsert;

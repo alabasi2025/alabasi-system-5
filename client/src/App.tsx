@@ -31,6 +31,7 @@ import ChatHistory from "./pages/ChatHistory";
 import UnitDetails from "./pages/UnitDetails";
 import OrganizationDetails from "./pages/OrganizationDetails";
 import GeneralLedger from "./pages/GeneralLedger";
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/chat-history" component={() => <DashboardLayout><ChatHistory /></DashboardLayout>} />
       <Route path="/units/:id" component={() => <DashboardLayout><UnitDetails /></DashboardLayout>} />
       <Route path="/organizations/:id" component={() => <DashboardLayout><OrganizationDetails /></DashboardLayout>} />
+      <Route path="/settings" component={() => <DashboardLayout><Settings /></DashboardLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

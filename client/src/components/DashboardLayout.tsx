@@ -34,7 +34,8 @@ import {
   Briefcase, 
   Building2, 
   Wallet, 
-  Bot
+  Bot,
+  Settings as SettingsIcon
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -56,6 +57,7 @@ const menuItems = [
   { icon: Package, label: "المخزون", path: "/inventory" },
   { icon: Users, label: "الموظفين", path: "/employees" },
   { icon: Briefcase, label: "الأصول", path: "/assets" },
+  { icon: SettingsIcon, label: "إعدادات النظام", path: "/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

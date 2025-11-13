@@ -629,6 +629,39 @@ export const appRouter = router({
         return result;
       }),
   }),
+
+  // ============ Settings ============
+  settings: router({
+    getAll: protectedProcedure.query(async () => {
+      return await db.getAllSettings();
+    }),
+    getByKey: protectedProcedure.input(z.string()).query(async ({ input }) => {
+      return await db.getSettingByKey(input);
+    }),
+    getByCategory: protectedProcedure.input(z.string()).query(async ({ input }) => {
+      return await db.getSettingsByCategory(input);
+    }),
+    upsert: protectedProcedure
+      .input(
+        z.object({
+          key: z.string(),
+          value: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await db.upsertSetting({
+          ...input,
+          updatedBy: ctx.user.id,
+        });
+        return { success: true };
+      }),
+    delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
+      await db.deleteSetting(input);
+      return { success: true };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
