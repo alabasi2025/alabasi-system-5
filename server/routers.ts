@@ -662,6 +662,33 @@ export const appRouter = router({
       return { success: true };
     }),
   }),
+
+  // ============ Backup ============
+  backup: router({
+    create: protectedProcedure.mutation(async () => {
+      // @ts-ignore - backup-db.mjs is a pure ESM module
+      const { performBackup } = await import("../backup-db.mjs");
+      const result = await performBackup();
+      return result;
+    }),
+    list: protectedProcedure.query(async () => {
+      // @ts-ignore - backup-db.mjs is a pure ESM module
+      const { listBackups } = await import("../backup-db.mjs");
+      const backups = await listBackups();
+      return backups;
+    }),
+    restore: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
+      // @ts-ignore - backup-db.mjs is a pure ESM module
+      const { restoreBackup } = await import("../backup-db.mjs");
+      const result = await restoreBackup(input);
+      return result;
+    }),
+    restartScheduler: protectedProcedure.mutation(async () => {
+      const { restartBackupScheduler } = await import("./backup-scheduler");
+      await restartBackupScheduler();
+      return { success: true };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

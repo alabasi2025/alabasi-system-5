@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Save, Settings as SettingsIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BackupManagement from "@/components/BackupManagement";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -157,10 +158,11 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general">الإعدادات العامة</TabsTrigger>
           <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
           <TabsTrigger value="backup">النسخ الاحتياطي</TabsTrigger>
+          <TabsTrigger value="backups">إدارة النسخ</TabsTrigger>
         </TabsList>
 
         {/* الإعدادات العامة */}
@@ -397,6 +399,11 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* إدارة النسخ الاحتياطية */}
+        <TabsContent value="backups">
+          <BackupManagement />
         </TabsContent>
       </Tabs>
     </div>

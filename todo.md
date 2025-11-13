@@ -427,3 +427,30 @@
 - [x] النظام يعمل بدون أخطاء
 - [x] الواجهة جاهزة للاستخدام
 - [ ] حفظ checkpoint
+
+## مهمة جديدة: نظام النسخ الاحتياطي الفعلي
+
+### المرحلة 1: سكريبت النسخ الاحتياطي
+- [x] إنشاء backup-db.mjs (200+ سطر)
+- [x] 4 دوال: performBackup, restoreBackup, listBackups, cleanOldBackups
+- [x] تنفيذ mysqldump مع معالجة الأخطاء
+- [x] حفظ في /backups مع timestamp
+- [x] حذف تلقائي للنسخ القديمة (MAX_BACKUPS=30)
+- [x] 3 npm scripts: backup, backup:list, backup:restore
+
+### المرحلة 2: الجدولة الزمنية
+- [x] تثبيت node-cron + @types/node-cron
+- [x] إنشاء backup-scheduler.ts
+- [x] قراءة إعدادات من settings
+- [x] تحويل تكرار إلى cron expression
+- [x] دمج في server/_core/index.ts
+- [x] إضافة 4 backup APIs
+- [x] إنشاء BackupManagement.tsx (250+ سطر)
+- [x] تبويب رابع في Settings
+- [x] جدول النسخ + أزرار الإجراءات
+- [x] Dialog تأكيد الاستعادة
+
+### المرحلة 3: الاختبار
+- [x] النظام يعمل بدون أخطاء
+- [x] جميع المكونات جاهزة
+- [ ] حفظ checkpoint
