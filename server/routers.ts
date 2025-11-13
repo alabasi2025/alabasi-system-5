@@ -534,6 +534,40 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getIncomeStatement(input);
       }),
+    exportTrialBalance: protectedProcedure
+      .input(
+        z.object({
+          branchId: z.number().optional(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const result = await db.getTrialBalance(input);
+        const { exportTrialBalanceToExcel } = await import("./report-exporter");
+        const buffer = exportTrialBalanceToExcel(result.accounts);
+        return {
+          data: Buffer.from(buffer).toString("base64"),
+          filename: `trial-balance-${Date.now()}.xlsx`,
+        };
+      }),
+    exportAccountStatement: protectedProcedure
+      .input(
+        z.object({
+          accountId: z.number(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const result = await db.getAccountStatement(input);
+        const { exportAccountStatementToExcel } = await import("./report-exporter");
+        const buffer = exportAccountStatementToExcel(result.transactions);
+        return {
+          data: Buffer.from(buffer).toString("base64"),
+          filename: `account-statement-${input.accountId}-${Date.now()}.xlsx`,
+        };
+      }),
   }),
 
   // ============ AI Assistant ============
@@ -582,6 +616,18 @@ export const appRouter = router({
     conversations: protectedProcedure.query(async ({ ctx }) => {
       return await db.getAiConversations(ctx.user.id);
     }),
+    executeAction: protectedProcedure
+      .input(
+        z.object({
+          action: z.string(),
+          data: z.any(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { executeAction } = await import("./ai-executor");
+        const result = await executeAction(input.action, input.data, ctx.user.id);
+        return result;
+      }),
   }),
 });
 

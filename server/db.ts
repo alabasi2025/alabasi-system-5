@@ -19,6 +19,9 @@ import {
   aiConversations,
   units,
   organizations,
+  roles,
+  permissions,
+  userRoles,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -728,4 +731,76 @@ export async function getIncomeStatement(params: {
     expenses: [],
     netIncome: 0,
   };
+}
+
+
+// ============ Roles & Permissions ============
+export async function getAllRoles() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(roles);
+}
+
+export async function getRoleById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function createRole(data: typeof roles.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(roles).values(data);
+}
+
+export async function getPermissionsByRole(roleId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(permissions).where(eq(permissions.roleId, roleId));
+}
+
+export async function setPermission(data: typeof permissions.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(permissions).values(data);
+}
+
+export async function getUserRoles(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(userRoles).where(eq(userRoles.userId, userId));
+}
+
+export async function assignRoleToUser(userId: number, roleId: number, assignedBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(userRoles).values({ userId, roleId, assignedBy });
+}
+
+export async function checkPermission(userId: number, resource: string, action: "view" | "create" | "edit" | "delete" | "export") {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const userRolesList = await db.select().from(userRoles).where(eq(userRoles.userId, userId));
+  if (userRolesList.length === 0) return false;
+  
+  for (const userRole of userRolesList) {
+    const perms = await db.select().from(permissions)
+      .where(and(eq(permissions.roleId, userRole.roleId), eq(permissions.resource, resource)))
+      .limit(1);
+    
+    if (perms.length > 0) {
+      const perm = perms[0];
+      switch (action) {
+        case "view": return perm.canView;
+        case "create": return perm.canCreate;
+        case "edit": return perm.canEdit;
+        case "delete": return perm.canDelete;
+        case "export": return perm.canExport;
+      }
+    }
+  }
+  
+  return false;
 }

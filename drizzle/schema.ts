@@ -454,3 +454,56 @@ export const commandHistory = mysqlTable("command_history", {
 
 export type CommandHistory = typeof commandHistory.$inferSelect;
 export type InsertCommandHistory = typeof commandHistory.$inferInsert;
+
+/**
+ * الأدوار (Roles) - لتحديد صلاحيات المستخدمين
+ */
+export const roles = mysqlTable("roles", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 100 }).notNull(),
+  description: text("description"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+});
+
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = typeof roles.$inferInsert;
+
+/**
+ * الصلاحيات (Permissions) - تحديد ما يمكن للدور فعله
+ */
+export const permissions = mysqlTable("permissions", {
+  id: int("id").autoincrement().primaryKey(),
+  roleId: int("roleId").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  resource: varchar("resource", { length: 100 }).notNull(), // journal_entries, vouchers, reports, etc.
+  canView: boolean("canView").default(false).notNull(),
+  canCreate: boolean("canCreate").default(false).notNull(),
+  canEdit: boolean("canEdit").default(false).notNull(),
+  canDelete: boolean("canDelete").default(false).notNull(),
+  canExport: boolean("canExport").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  roleResourceIdx: index("role_resource_idx").on(table.roleId, table.resource),
+}));
+
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = typeof permissions.$inferInsert;
+
+/**
+ * ربط المستخدمين بالأدوار
+ */
+export const userRoles = mysqlTable("userRoles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  roleId: int("roleId").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assignedAt").defaultNow().notNull(),
+  assignedBy: int("assignedBy").references(() => users.id),
+}, (table) => ({
+  userIdx: index("user_idx").on(table.userId),
+  roleIdx: index("role_idx").on(table.roleId),
+}));
+
+export type UserRole = typeof userRoles.$inferSelect;
+export type InsertUserRole = typeof userRoles.$inferInsert;
