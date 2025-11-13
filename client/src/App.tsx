@@ -19,6 +19,12 @@ import Inventory from "./pages/Inventory";
 import Assets from "./pages/Assets";
 import Units from "./pages/Units";
 import AIAssistant from "./pages/AIAssistant";
+import JournalEntry from "./pages/JournalEntry";
+import TrialBalance from "./pages/TrialBalance";
+import BalanceSheet from "./pages/BalanceSheet";
+import IncomeStatement from "./pages/IncomeStatement";
+import AccountStatement from "./pages/AccountStatement";
+import Organizations from "./pages/Organizations";
 
 function Router() {
   return (
@@ -39,6 +45,12 @@ function Router() {
       <Route path="/employees" component={() => <DashboardLayout><Employees /></DashboardLayout>} />
       <Route path="/assets" component={() => <DashboardLayout><Assets /></DashboardLayout>} />
       <Route path="/units" component={() => <DashboardLayout><Units /></DashboardLayout>} />
+      <Route path="/organizations" component={() => <DashboardLayout><Organizations /></DashboardLayout>} />
+      <Route path="/journal-entry" component={() => <DashboardLayout><JournalEntry /></DashboardLayout>} />
+      <Route path="/trial-balance" component={() => <DashboardLayout><TrialBalance /></DashboardLayout>} />
+      <Route path="/balance-sheet" component={() => <DashboardLayout><BalanceSheet /></DashboardLayout>} />
+      <Route path="/income-statement" component={() => <DashboardLayout><IncomeStatement /></DashboardLayout>} />
+      <Route path="/account-statement" component={() => <DashboardLayout><AccountStatement /></DashboardLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
