@@ -42,18 +42,20 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "الرئيسية", path: "/" },
+  { icon: LayoutDashboard, label: "الصفحة الرئيسية", path: "/" },
   { icon: BookOpen, label: "دليل الحسابات", path: "/chart-of-accounts" },
-  { icon: Wallet, label: "الحسابات التحليلية", path: "/analytical-accounts" },
-  { icon: Receipt, label: "سند صرف", path: "/payment-voucher" },
-  { icon: FileText, label: "سند قبض", path: "/receipt-voucher" },
-  { icon: FileText, label: "قائمة السندات", path: "/vouchers-list" },
+  { icon: Wallet, label: "الصناديق والبنوك", path: "/analytical-accounts" },
+  { icon: Building2, label: "الوحدات والفروع", path: "/units" },
+  { icon: FileText, label: "القيود اليومية", path: "/journal-entry" },
+  { icon: Receipt, label: "سندات القبض", path: "/receipt-voucher" },
+  { icon: Receipt, label: "سندات الصرف", path: "/payment-voucher" },
+  { icon: BarChart3, label: "ميزان المراجعة", path: "/trial-balance" },
+  { icon: BarChart3, label: "قائمة المركز المالي", path: "/balance-sheet" },
+  { icon: BarChart3, label: "قائمة الدخل", path: "/income-statement" },
   { icon: Bot, label: "المساعد الذكي", path: "/ai-assistant" },
-  { icon: BarChart3, label: "التقارير المالية", path: "/reports" },
   { icon: Package, label: "المخزون", path: "/inventory" },
   { icon: Users, label: "الموظفين", path: "/employees" },
   { icon: Briefcase, label: "الأصول", path: "/assets" },
-  { icon: Building2, label: "الوحدات والمؤسسات", path: "/units" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
