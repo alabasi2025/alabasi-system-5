@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { registerServiceWorker, setupInstallPrompt } from "./registerSW";
 
 const queryClient = new QueryClient();
 
@@ -59,3 +60,9 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+// تسجيل Service Worker
+if (import.meta.env.PROD) {
+  registerServiceWorker().catch(console.error);
+  setupInstallPrompt();
+}
