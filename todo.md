@@ -205,11 +205,13 @@
 - [ ] التحقق من عدم وجود أخطاء TypeScript
 
 ## استنساخ مكونات Universal Installer System
-- [ ] إنشاء مجلد installer/ في المشروع
-- [ ] نسخ وتكييف Error-Reporter للنظام المحاسبي
-- [ ] نسخ وتكييف Auto-Updater للتحديثات التلقائية
-- [ ] نسخ وتكييف Service-Manager لتشغيل كخدمة Windows
-- [ ] إنشاء ملف config.json للتثبيت السهل
-- [ ] إنشاء Install.bat للتثبيت بنقرة واحدة
-- [ ] إنشاء Update.bat للتحديث بنقرة واحدة
-- [ ] اختبار النظام الجديد
+- [x] إنشاء مجلد installer/ في المشروع
+- [x] نسخ وتكييف Error-Reporter للنظام المحاسبي
+- [x] نسخ وتكييف Auto-Updater للتحديثات التلقائية
+- [x] نسخ وتكييف Service-Manager لتشغيل كخدمة Windows
+- [x] إنشاء ملف config.json للتثبيت السهل
+- [x] إنشاء Install.bat للتثبيت بنقرة واحدة
+- [x] إنشاء Update.bat للتحديث بنقرة واحدة
+- [x] إنشاء README.md شامل للمثبت
+- [x] نسخ جميع المكونات الأساسية (7 ملفات PowerShell)
+- [ ] اختبار النظام الجديد على Windows
