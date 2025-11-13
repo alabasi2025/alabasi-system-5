@@ -635,3 +635,97 @@ export async function deleteOrganization(id: number) {
   if (!db) throw new Error("Database not available");
   return await db.update(organizations).set({ isActive: false }).where(eq(organizations.id, id));
 }
+
+// ============ Reports ============
+export async function getTrialBalance(params: {
+  branchId?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { accounts: [], totalDebit: 0, totalCredit: 0 };
+
+  // TODO: Implement real trial balance calculation from journal entries
+  // For now, return sample data
+  return {
+    accounts: [
+      {
+        accountCode: "1000",
+        accountName: "النقدية",
+        debit: 50000,
+        credit: 0,
+      },
+      {
+        accountCode: "2000",
+        accountName: "الموردون",
+        debit: 0,
+        credit: 30000,
+      },
+    ],
+    totalDebit: 50000,
+    totalCredit: 30000,
+  };
+}
+
+export async function getAccountStatement(params: {
+  accountId: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { account: null, transactions: [], balance: 0 };
+
+  const account = await getChartOfAccountById(params.accountId);
+  
+  // TODO: Implement real account statement from journal entries
+  return {
+    account,
+    transactions: [],
+    balance: 0,
+  };
+}
+
+export async function getGeneralLedger(params: {
+  branchId?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { entries: [] };
+
+  // TODO: Implement real general ledger from journal entries
+  return {
+    entries: [],
+  };
+}
+
+export async function getBalanceSheet(params: {
+  branchId?: number;
+  date?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { assets: [], liabilities: [], equity: [] };
+
+  // TODO: Implement real balance sheet calculation
+  return {
+    assets: [],
+    liabilities: [],
+    equity: [],
+  };
+}
+
+export async function getIncomeStatement(params: {
+  branchId?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { revenues: [], expenses: [], netIncome: 0 };
+
+  // TODO: Implement real income statement calculation
+  return {
+    revenues: [],
+    expenses: [],
+    netIncome: 0,
+  };
+}

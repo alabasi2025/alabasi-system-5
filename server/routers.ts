@@ -478,6 +478,64 @@ export const appRouter = router({
     }),
   }),
 
+  // ============ Reports ============
+  reports: router({  
+    trialBalance: protectedProcedure
+      .input(
+        z.object({
+          branchId: z.number().optional(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getTrialBalance(input);
+      }),
+    accountStatement: protectedProcedure
+      .input(
+        z.object({
+          accountId: z.number(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getAccountStatement(input);
+      }),
+    generalLedger: protectedProcedure
+      .input(
+        z.object({
+          branchId: z.number().optional(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getGeneralLedger(input);
+      }),
+    balanceSheet: protectedProcedure
+      .input(
+        z.object({
+          branchId: z.number().optional(),
+          date: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getBalanceSheet(input);
+      }),
+    incomeStatement: protectedProcedure
+      .input(
+        z.object({
+          branchId: z.number().optional(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getIncomeStatement(input);
+      }),
+  }),
+
   // ============ AI Assistant ============
   ai: router({
     chat: protectedProcedure
