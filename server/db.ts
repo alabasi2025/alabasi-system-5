@@ -422,6 +422,59 @@ export async function createJournalEntry(
   return entryId;
 }
 
+export async function getAllJournalEntries(branchId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  let conditions = [];
+  if (branchId) {
+    conditions.push(eq(journalEntries.branchId, branchId));
+  }
+
+  const entries = await db
+    .select()
+    .from(journalEntries)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(journalEntries.date));
+
+  return entries;
+}
+
+export async function getJournalEntryById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const entry = await db.select().from(journalEntries).where(eq(journalEntries.id, id)).limit(1);
+  if (entry.length === 0) return null;
+
+  const lines = await db.select().from(journalEntryLines).where(eq(journalEntryLines.entryId, id));
+
+  return {
+    ...entry[0],
+    lines,
+  };
+}
+
+export async function getJournalEntryLines(entryId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select({
+      id: journalEntryLines.id,
+      entryId: journalEntryLines.entryId,
+      accountId: journalEntryLines.accountId,
+      accountName: analyticalAccounts.nameAr,
+      type: journalEntryLines.type,
+      amount: journalEntryLines.amount,
+      currencyId: journalEntryLines.currencyId,
+      description: journalEntryLines.description,
+    })
+    .from(journalEntryLines)
+    .leftJoin(analyticalAccounts, eq(journalEntryLines.accountId, analyticalAccounts.id))
+    .where(eq(journalEntryLines.entryId, entryId));
+}
+
 // ============ AI Conversations ============
 export async function saveAiConversation(data: typeof aiConversations.$inferInsert) {
   const db = await getDb();

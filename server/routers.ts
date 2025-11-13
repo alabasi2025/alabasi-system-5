@@ -319,6 +319,72 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ Journal Entries ============
+  journalEntries: router({
+    list: protectedProcedure
+      .input(z.object({ branchId: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return await db.getAllJournalEntries(input?.branchId);
+      }),
+    getById: protectedProcedure.input(z.number()).query(async ({ input }) => {
+      return await db.getJournalEntryById(input);
+    }),
+    getLines: protectedProcedure.input(z.number()).query(async ({ input }) => {
+      return await db.getJournalEntryLines(input);
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          date: z.string().or(z.date()),
+          description: z.string(),
+          branchId: z.number(),
+          lines: z.array(
+            z.object({
+              accountId: z.number(),
+              type: z.enum(["debit", "credit"]),
+              amount: z.number().positive(),
+              currencyId: z.number(),
+              description: z.string().optional(),
+            })
+          ).min(2, "يجب إضافة سطرين على الأقل"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        // Validate balance (debit = credit)
+        const debitTotal = input.lines
+          .filter((l) => l.type === "debit")
+          .reduce((sum, l) => sum + l.amount, 0);
+        const creditTotal = input.lines
+          .filter((l) => l.type === "credit")
+          .reduce((sum, l) => sum + l.amount, 0);
+
+        if (Math.abs(debitTotal - creditTotal) > 0.01) {
+          throw new Error(
+            `القيد غير متوازن: المدين = ${debitTotal.toFixed(2)}, الدائن = ${creditTotal.toFixed(2)}`
+          );
+        }
+
+        // Generate entry number
+        const timestamp = Date.now();
+        const entryNumber = `JE-${timestamp}`;
+
+        // Create journal entry
+        const entryId = await db.createJournalEntry(
+          {
+            entryNumber,
+            date: new Date(input.date),
+            description: input.description,
+            branchId: input.branchId,
+            status: "posted",
+            createdBy: ctx.user.id,
+          },
+          input.lines as any
+        );
+
+        return { id: entryId, entryNumber };
+      }),
+  }),
+
   // ============ Units ============
   units: router({
     list: protectedProcedure.query(async () => {
