@@ -203,3 +203,13 @@
 - [ ] إصلاح أخطاء ChatHistory
 - [ ] إصلاح أخطاء GeneralLedger وAccountStatement
 - [ ] التحقق من عدم وجود أخطاء TypeScript
+
+## استنساخ مكونات Universal Installer System
+- [ ] إنشاء مجلد installer/ في المشروع
+- [ ] نسخ وتكييف Error-Reporter للنظام المحاسبي
+- [ ] نسخ وتكييف Auto-Updater للتحديثات التلقائية
+- [ ] نسخ وتكييف Service-Manager لتشغيل كخدمة Windows
+- [ ] إنشاء ملف config.json للتثبيت السهل
+- [ ] إنشاء Install.bat للتثبيت بنقرة واحدة
+- [ ] إنشاء Update.bat للتحديث بنقرة واحدة
+- [ ] اختبار النظام الجديد
