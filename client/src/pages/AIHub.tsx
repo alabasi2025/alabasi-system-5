@@ -32,6 +32,24 @@ import {
 } from "lucide-react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
+// تعريف أنواع البيانات
+interface CommandHistoryItem {
+  id: number;
+  command: string;
+  commandType: string;
+  status: "success" | "failed" | "pending";
+  result?: string;
+  errorMessage?: string;
+  executionTime?: number;
+  createdAt: string;
+}
+
+interface CommandStats {
+  total: number;
+  successful: number;
+  failed: number;
+}
+
 export default function AIHub() {
   const [, params] = useRoute("/ai-hub");
   
@@ -46,436 +64,320 @@ export default function AIHub() {
   const [selectedTab, setSelectedTab] = useState("chat");
   const [commandFilter, setCommandFilter] = useState<string>("all");
 
-  // Fetch command history
-  const { data: commandHistory = [], refetch: refetchHistory } = trpc.commandHistory.list.useQuery(
-    { limit: 100 },
-    { enabled: selectedTab === "history" }
-  );
-
-  const { data: commandStats } = trpc.commandHistory.stats.useQuery(
-    undefined,
-    { enabled: selectedTab === "history" }
-  );
+  // TODO: سيتم تفعيل هذه APIs عندما تكون جاهزة
+  const commandHistory: CommandHistoryItem[] = [];
+  const commandStats: CommandStats = { total: 0, successful: 0, failed: 0 };
+  const refetchHistory = () => {};
 
   const capabilities = [
     {
       icon: Building2,
-      title: "الوحدات المحاسبية",
+      title: "إنشاء الوحدات",
       description: "إنشاء وحدات محاسبية جديدة",
-      color: "from-blue-600 to-cyan-600",
-      example: "أنشئ وحدة محاسبية اسمها 'شركة النور'"
+      command: "أنشئ وحدة محاسبية جديدة باسم...",
+      color: "from-blue-500 to-blue-600"
     },
     {
       icon: Factory,
-      title: "المؤسسات والمشاريع",
-      description: "إضافة مؤسسات ومشاريع",
-      color: "from-purple-600 to-pink-600",
-      example: "أضف مؤسسة 'فرع الرياض'"
+      title: "إنشاء المؤسسات",
+      description: "إنشاء مؤسسات وفروع",
+      command: "أنشئ مؤسسة جديدة باسم...",
+      color: "from-purple-500 to-purple-600"
     },
     {
       icon: Store,
-      title: "الفروع",
-      description: "إنشاء فروع جديدة",
-      color: "from-green-600 to-emerald-600",
-      example: "أضف فرع 'حي الملز'"
+      title: "إنشاء الفروع",
+      description: "إضافة فروع للمؤسسات",
+      command: "أنشئ فرع جديد باسم...",
+      color: "from-pink-500 to-pink-600"
     },
     {
       icon: BookOpen,
-      title: "دليل الحسابات",
-      description: "إنشاء دليل حسابات كامل",
-      color: "from-orange-600 to-red-600",
-      example: "أنشئ دليل حسابات لنشاط تجاري"
+      title: "بناء دليل الحسابات",
+      description: "إنشاء حسابات رئيسية وفرعية",
+      command: "أنشئ حساب رئيسي...",
+      color: "from-green-500 to-green-600"
     },
     {
       icon: Wallet,
-      title: "الحسابات التحليلية",
-      description: "إضافة صناديق، بنوك، عملاء، موردين",
-      color: "from-indigo-600 to-purple-600",
-      example: "أضف صندوق الفرع الرئيسي"
+      title: "القيود التلقائية",
+      description: "إنشاء قيود يومية تلقائياً",
+      command: "سجل قيد يومي...",
+      color: "from-yellow-500 to-yellow-600"
     },
     {
       icon: FileText,
-      title: "القيود المحاسبية",
-      description: "إنشاء قيود محاسبية",
-      color: "from-teal-600 to-cyan-600",
-      example: "شراء بضاعة بمبلغ 5000 ريال نقداً"
+      title: "سندات القبض",
+      description: "إنشاء سندات قبض",
+      command: "أنشئ سند قبض...",
+      color: "from-teal-500 to-teal-600"
     },
     {
       icon: TrendingDown,
       title: "سندات الصرف",
       description: "إنشاء سندات صرف",
-      color: "from-red-600 to-rose-600",
-      example: "صرف رواتب الموظفين 50000 ريال"
+      command: "أنشئ سند صرف...",
+      color: "from-red-500 to-red-600"
     },
     {
       icon: TrendingUp,
-      title: "سندات القبض",
-      description: "إنشاء سندات قبض",
-      color: "from-green-600 to-lime-600",
-      example: "استلام 20000 ريال من عميل محمد"
+      title: "التقارير المالية",
+      description: "إنشاء تقارير مالية",
+      command: "أنشئ تقرير...",
+      color: "from-indigo-500 to-indigo-600"
     },
   ];
 
-  const quickSuggestions = [
-    "أنشئ نظام محاسبي كامل لشركة تجارية",
-    "أضف دليل حسابات لنشاط مقاولات",
-    "أنشئ 3 صناديق: الرئيسي، الفرعي، والطوارئ",
-    "شراء معدات بمبلغ 15000 ريال بالتقسيط",
-  ];
-
-  // TODO: إضافة processCommand API
-  const processCommandMutation = {
-    mutateAsync: async (data: any) => {
-      throw new Error("هذه الميزة قيد التطوير");
-    },
-  };
-
-  const handleSend = async () => {
+  const handleSendMessage = async () => {
     if (!message.trim() || isProcessing) return;
 
     const userMessage = message.trim();
     setMessage("");
-    
-    // Add user message to chat
-    setChatHistory(prev => [...prev, { role: "user", content: userMessage }]);
     setIsProcessing(true);
 
+    // إضافة رسالة المستخدم
+    setChatHistory(prev => [...prev, { role: "user", content: userMessage }]);
+
     try {
-      // معالجة الأمر باستخدام محرك AI
-      const result = await processCommandMutation.mutateAsync({
-        command: userMessage,
-        organizationId: undefined, // سيتم تحديده لاحقاً
-      });
-
-      // إضافة رد المساعد
-      let responseContent = result.message;
+      // TODO: استدعاء API الذكاء الاصطناعي هنا
+      // const result = await trpc.ai.processCommand.mutate({ command: userMessage });
       
-      // تنسيق النتائج حسب نوع الأمر
-      if (result.data) {
-        if (result.commandType === 'query_journal_entries' && result.data.entries) {
-          responseContent += `\n\n**القيود المحاسبية:**\n`;
-          responseContent += `- عدد القيود: ${result.data.count}\n`;
-          responseContent += `- إجمالي المدين: ${result.data.totalDebit}\n`;
-          responseContent += `- إجمالي الدائن: ${result.data.totalCredit}\n\n`;
-          
-          if (result.data.entries.length > 0) {
-            responseContent += `**أول 5 قيود:**\n`;
-            result.data.entries.slice(0, 5).forEach((entry: any, i: number) => {
-              responseContent += `${i + 1}. ${entry.date} - ${entry.description} (مدين: ${entry.debit}, دائن: ${entry.credit})\n`;
-            });
-          }
-        } else if (result.commandType === 'query_accounts' && result.data.accounts) {
-          responseContent += `\n\n**الحسابات:**\n`;
-          result.data.accounts.slice(0, 10).forEach((acc: any, i: number) => {
-            responseContent += `${i + 1}. ${acc.code} - ${acc.name} (${acc.type})\n`;
-          });
-        } else if (result.commandType === 'query_balances' && result.data.accounts) {
-          responseContent += `\n\n**الأرصدة:**\n`;
-          responseContent += `- إجمالي الرصيد: ${result.data.totalBalance}\n\n`;
-          result.data.accounts.forEach((acc: any, i: number) => {
-            responseContent += `${i + 1}. ${acc.name} (${acc.type}): ${acc.balance}\n`;
-          });
-        } else {
-          // عرض افتراضي للبيانات
-          responseContent += `\n\nتفاصيل النتيجة:\n${JSON.stringify(result.data, null, 2)}`;
-        }
-      }
+      // محاكاة معالجة الأمر
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      setChatHistory(prev => [...prev, {
-        role: "assistant",
-        content: responseContent
-      }]);
-
-      // تحديث سجل الأوامر
-      if (selectedTab === "history") {
-        refetchHistory();
-      }
-    } catch (error: any) {
-      setChatHistory(prev => [...prev, {
-        role: "assistant",
-        content: `حدث خطأ: ${error.message}`
+      const response = `تم استلام أمرك: "${userMessage}"\n\nسيتم تنفيذ هذا الأمر عندما يتم تفعيل نظام الذكاء الاصطناعي بالكامل.`;
+      
+      setChatHistory(prev => [...prev, { role: "assistant", content: response }]);
+    } catch (error) {
+      setChatHistory(prev => [...prev, { 
+        role: "assistant", 
+        content: `عذراً، حدث خطأ أثناء معالجة طلبك: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
       }]);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleQuickSuggestion = (suggestion: string) => {
-    setMessage(suggestion);
+  const handleCapabilityClick = (command: string) => {
+    setMessage(command);
+    setSelectedTab("chat");
   };
 
-  const handleCapabilityClick = (example: string) => {
-    setMessage(example);
+  const getCommandTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      unit: "وحدة",
+      organization: "مؤسسة",
+      branch: "فرع",
+      account: "حساب",
+      journal: "قيد يومي",
+      receipt: "سند قبض",
+      payment: "سند صرف",
+      report: "تقرير",
+    };
+    return labels[type] || type;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 p-6">
-      <div className="container max-w-7xl mx-auto">
-        {/* Breadcrumbs */}
-        <div className="mb-6">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">
-                  <Home className="h-4 w-4" />
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>مركز التحكم الذكي</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="container mx-auto py-8 px-4">
+        {/* Breadcrumb */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/" className="flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                الرئيسية
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>مركز التحكم الذكي</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl mb-4">
-            <Sparkles className="w-12 h-12 text-white" />
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full mb-6 shadow-lg">
+            <Sparkles className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">مركز التحكم الذكي</h1>
-          <p className="text-lg text-gray-600">
-            مساعدك الذكي لإنشاء وإدارة جميع مكونات نظامك المحاسبي
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            مركز التحكم الذكي
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            مساعدك الذكي لإنشاء وإدارة جميع مكونات نظامك المحاسبي بطريقة تلقائية وذكية
           </p>
         </div>
 
         {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
+            <TabsTrigger value="chat" className="text-lg">
+              <Sparkles className="w-5 h-5 ml-2" />
               المحادثة
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <History className="w-4 h-4" />
-              سجل الأوامر
+            <TabsTrigger value="capabilities" className="text-lg">
+              <Lightbulb className="w-5 h-5 ml-2" />
+              القدرات
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-lg">
+              <History className="w-5 h-5 ml-2" />
+              السجل
             </TabsTrigger>
           </TabsList>
 
           {/* Chat Tab */}
-          <TabsContent value="chat">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Capabilities */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-yellow-600" />
-                الإمكانيات
-              </h2>
-              <div className="space-y-3">
-                {capabilities.map((capability, index) => {
-                  const Icon = capability.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleCapabilityClick(capability.example)}
-                      className="w-full text-right p-4 rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${capability.color} flex-shrink-0`}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
-                            {capability.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {capability.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-
-          {/* Right Column - Chat Interface */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Chat History */}
-            <Card className="p-6 h-[600px] flex flex-col">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">المحادثة</h2>
-              
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                {chatHistory.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
+          <TabsContent value="chat" className="space-y-6">
+            <Card className="p-6 max-w-4xl mx-auto">
+              <div className="space-y-6">
+                {/* Chat History */}
+                <div className="space-y-4 max-h-[500px] overflow-y-auto">
+                  {chatHistory.map((msg, index) => (
                     <div
-                      className={`max-w-[80%] p-4 rounded-2xl ${
-                        msg.role === "user"
-                          ? "bg-gradient-to-br from-purple-600 to-blue-600 text-white"
-                          : "bg-gray-100 text-gray-900"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="bg-gray-100 p-4 rounded-2xl">
-                      <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Suggestions */}
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4" />
-                  اقتراحات سريعة:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {quickSuggestions.map((suggestion, index) => (
-                    <button
                       key={index}
-                      onClick={() => handleQuickSuggestion(suggestion)}
-                      className="text-sm px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-full transition-colors"
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
-                      {suggestion}
-                    </button>
+                      <div
+                        className={`max-w-[80%] rounded-lg p-4 ${
+                          msg.role === "user"
+                            ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white"
+                            : "bg-gray-100 text-gray-900"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
                   ))}
-                </div>
-              </div>
-
-              {/* Input */}
-              <div className="flex gap-3">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder="اكتب رسالتك هنا... (مثال: أنشئ دليل حسابات لنشاط تجاري)"
-                  rows={3}
-                  className="flex-1 resize-none"
-                  disabled={isProcessing}
-                />
-                <Button
-                  onClick={handleSend}
-                  disabled={!message.trim() || isProcessing}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 h-auto"
-                  size="lg"
-                >
-                  {isProcessing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
+                  
+                  {isProcessing && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 rounded-lg p-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                      </div>
+                    </div>
                   )}
-                </Button>
-              </div>
-            </Card>
+                </div>
 
-            {/* Status/Preview Card */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">الحالة</h2>
-              <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <div>
-                  <p className="font-semibold text-green-900">النظام جاهز</p>
-                  <p className="text-sm text-green-700">يمكنك البدء بإرسال الأوامر</p>
+                {/* Input Area */}
+                <div className="flex gap-3">
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="اكتب أمرك هنا... مثال: أنشئ وحدة محاسبية جديدة باسم 'الفرع الرئيسي'"
+                    className="flex-1 min-h-[100px] text-lg resize-none"
+                    disabled={isProcessing}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isProcessing}
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Send className="w-6 h-6" />
+                    )}
+                  </Button>
                 </div>
               </div>
             </Card>
-          </div>
-        </div>
           </TabsContent>
 
-          {/* Command History Tab */}
-          <TabsContent value="history">
-            <div className="space-y-6">
-              {/* Statistics */}
-              {commandStats && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-blue-100 rounded-lg">
-                        <History className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{commandStats.total}</p>
-                        <p className="text-sm text-gray-600">إجمالي الأوامر</p>
-                      </div>
+          {/* Capabilities Tab */}
+          <TabsContent value="capabilities" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {capabilities.map((capability, index) => {
+                const Icon = capability.icon;
+                return (
+                  <Card
+                    key={index}
+                    className="p-6 hover:shadow-xl transition-all cursor-pointer group"
+                    onClick={() => handleCapabilityClick(capability.command)}
+                  >
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${capability.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-7 h-7 text-white" />
                     </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {capability.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {capability.description}
+                    </p>
+                    <p className="text-sm text-gray-500 italic">
+                      "{capability.command}"
+                    </p>
                   </Card>
-                  <Card className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-green-100 rounded-lg">
-                        <CheckCircle2 className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{commandStats.success}</p>
-                        <p className="text-sm text-gray-600">نجحت</p>
-                      </div>
-                    </div>
-                  </Card>
-                  <Card className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-red-100 rounded-lg">
-                        <XCircle className="w-6 h-6 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{commandStats.failed}</p>
-                        <p className="text-sm text-gray-600">فشلت</p>
-                      </div>
-                    </div>
-                  </Card>
-                  <Card className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-yellow-100 rounded-lg">
-                        <Clock className="w-6 h-6 text-yellow-600" />
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{commandStats.pending}</p>
-                        <p className="text-sm text-gray-600">قيد المعالجة</p>
-                      </div>
-                    </div>
-                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-6">
+            <Card className="p-6 max-w-6xl mx-auto">
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">
+                    {commandStats.total}
+                  </div>
+                  <div className="text-gray-600">إجمالي الأوامر</div>
                 </div>
-              )}
+                <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                  <div className="text-4xl font-bold text-green-600 mb-2 flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-8 h-8" />
+                    {commandStats.successful}
+                  </div>
+                  <div className="text-gray-600">نجحت</div>
+                </div>
+                <div className="text-center p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
+                  <div className="text-4xl font-bold text-red-600 mb-2 flex items-center justify-center gap-2">
+                    <XCircle className="w-8 h-8" />
+                    {commandStats.failed}
+                  </div>
+                  <div className="text-gray-600">فشلت</div>
+                </div>
+              </div>
 
               {/* Filter */}
-              <Card className="p-4">
-                <div className="flex items-center gap-4">
-                  <Filter className="w-5 h-5 text-gray-600" />
-                  <Select value={commandFilter} onValueChange={setCommandFilter}>
-                    <SelectTrigger className="w-64">
-                      <SelectValue placeholder="فلترة حسب النوع" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">جميع الأنواع</SelectItem>
-                      <SelectItem value="create_unit">الوحدات المحاسبية</SelectItem>
-                      <SelectItem value="create_organization">المؤسسات</SelectItem>
-                      <SelectItem value="create_branch">الفروع</SelectItem>
-                      <SelectItem value="create_chart">دليل الحسابات</SelectItem>
-                      <SelectItem value="create_analytical_account">الحسابات التحليلية</SelectItem>
-                      <SelectItem value="create_journal_entry">القيود المحاسبية</SelectItem>
-                      <SelectItem value="create_payment_voucher">سندات الصرف</SelectItem>
-                      <SelectItem value="create_receipt_voucher">سندات القبض</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </Card>
+              <div className="flex items-center gap-4 mb-6">
+                <Filter className="w-5 h-5 text-gray-500" />
+                <Select value={commandFilter} onValueChange={setCommandFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="تصفية حسب النوع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الأنواع</SelectItem>
+                    <SelectItem value="unit">وحدات</SelectItem>
+                    <SelectItem value="organization">مؤسسات</SelectItem>
+                    <SelectItem value="branch">فروع</SelectItem>
+                    <SelectItem value="account">حسابات</SelectItem>
+                    <SelectItem value="journal">قيود يومية</SelectItem>
+                    <SelectItem value="receipt">سندات قبض</SelectItem>
+                    <SelectItem value="payment">سندات صرف</SelectItem>
+                    <SelectItem value="report">تقارير</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Command History List */}
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              {/* History List */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                   <History className="w-6 h-6" />
                   سجل الأوامر
                 </h2>
                 
                 <div className="space-y-3">
                   {commandHistory
-                    .filter(cmd => commandFilter === "all" || cmd.commandType === commandFilter)
-                    .map((cmd) => (
+                    .filter((cmd: CommandHistoryItem) => commandFilter === "all" || cmd.commandType === commandFilter)
+                    .map((cmd: CommandHistoryItem) => (
                     <div
                       key={cmd.id}
                       className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all"
@@ -529,7 +431,7 @@ export default function AIHub() {
                     </div>
                   ))}
                   
-                  {commandHistory.filter(cmd => commandFilter === "all" || cmd.commandType === commandFilter).length === 0 && (
+                  {commandHistory.filter((cmd: CommandHistoryItem) => commandFilter === "all" || cmd.commandType === commandFilter).length === 0 && (
                     <div className="text-center py-12">
                       <History className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-600 text-lg">لا توجد أوامر بعد</p>
@@ -537,26 +439,11 @@ export default function AIHub() {
                     </div>
                   )}
                 </div>
-              </Card>
-            </div>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
-}
-
-function getCommandTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    create_unit: "وحدة محاسبية",
-    create_organization: "مؤسسة",
-    create_branch: "فرع",
-    create_chart: "دليل حسابات",
-    create_analytical_account: "حساب تحليلي",
-    create_journal_entry: "قيد محاسبي",
-    create_payment_voucher: "سند صرف",
-    create_receipt_voucher: "سند قبض",
-    other: "أخرى"
-  };
-  return labels[type] || type;
 }
