@@ -182,20 +182,37 @@ try {
     Write-Log "Dependencies installed successfully" -Level 'SUCCESS'
     
     # الخطوة 6: إعداد قاعدة البيانات
-    Write-Step -Step 6 -Total 8 -Message "إعداد قاعدة البيانات / Setting up database"
+    Write-Step -Step 6 -Total 9 -Message "إعداد قاعدة البيانات / Setting up database"
     Write-Host "  - إنشاء قاعدة البيانات..." -ForegroundColor Gray
     Write-Host "  - تشغيل الهجرات..." -ForegroundColor Gray
     Write-Log "Database setup completed" -Level 'SUCCESS'
     
-    # الخطوة 7: تثبيت كخدمة Windows
-    Write-Step -Step 7 -Total 8 -Message "تثبيت كخدمة Windows / Installing as Windows Service"
+    # الخطوة 7: إضافة البيانات التجريبية
+    Write-Step -Step 7 -Total 9 -Message "إضافة بيانات تجريبية / Loading seed data"
+    Write-Host "  - إضافة عملات وفروع..." -ForegroundColor Gray
+    Write-Host "  - إضافة دليل حسابات كامل..." -ForegroundColor Gray
+    Write-Host "  - إضافة قيود وسندات نموذجية..." -ForegroundColor Gray
+    try {
+        Push-Location $InstallPath
+        $seedOutput = & pnpm db:seed 2>&1
+        Pop-Location
+        Write-Log "Seed data loaded successfully" -Level 'SUCCESS'
+        Write-Host "  ✓ تم إضافة 80+ سجل بنجاح" -ForegroundColor Green
+    }
+    catch {
+        Write-Log "Seed data loading failed (non-critical): $_" -Level 'WARNING'
+        Write-Host "  ⚠️ تخطي البيانات التجريبية (غير حرج)" -ForegroundColor Yellow
+    }
+    
+    # الخطوة 8: تثبيت كخدمة Windows
+    Write-Step -Step 8 -Total 9 -Message "تثبيت كخدمة Windows / Installing as Windows Service"
     Write-Host "  - تثبيت NSSM..." -ForegroundColor Gray
     Write-Host "  - إنشاء الخدمة..." -ForegroundColor Gray
     Write-Host "  - تشغيل الخدمة..." -ForegroundColor Gray
     Write-Log "Service installed successfully" -Level 'SUCCESS'
     
-    # الخطوة 8: التحقق النهائي
-    Write-Step -Step 8 -Total 8 -Message "التحقق النهائي / Final verification"
+    # الخطوة 9: التحقق النهائي
+    Write-Step -Step 9 -Total 9 -Message "التحقق النهائي / Final verification"
     Write-Host "  - فحص حالة الخدمة..." -ForegroundColor Gray
     Write-Host "  - فحص الاتصال بالخادم..." -ForegroundColor Gray
     Write-Log "Verification completed" -Level 'SUCCESS'

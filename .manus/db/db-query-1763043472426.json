@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM journalEntryLines; DELETE FROM journalEntries; DELETE FROM vouchers; DELETE FROM analyticalAccounts; DELETE FROM analyticalAccountTypes; DELETE FROM accountCurrencies; DELETE FROM chartOfAccounts; DELETE FROM accountCategories; DELETE FROM inventory; DELETE FROM employees; DELETE FROM units; DELETE FROM organizations; DELETE FROM branches; DELETE FROM currencies;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 6MJuaMCAQ7CCKTD.a053a4dd2ea0 --database GgbhgqVre75JJgq8KdMFSk --execute DELETE FROM journalEntryLines; DELETE FROM journalEntries; DELETE FROM vouchers; DELETE FROM analyticalAccounts; DELETE FROM analyticalAccountTypes; DELETE FROM accountCurrencies; DELETE FROM chartOfAccounts; DELETE FROM accountCategories; DELETE FROM inventory; DELETE FROM employees; DELETE FROM units; DELETE FROM organizations; DELETE FROM branches; DELETE FROM currencies;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 567
+}

@@ -290,6 +290,318 @@ const inventory = await db.insert(schema.inventory).values([
 ]);
 console.log('✅ تم إضافة 3 منتجات\n');
 
+// ============ 11. القيود اليومية ============
+console.log('📖 إضافة القيود اليومية...');
+
+// قيد 1: رأس المال الافتتاحي
+const entry1 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-001',
+  entryDate: new Date('2025-01-01'),
+  description: 'قيد افتتاحي - رأس المال',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry1Id = entry1[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry1Id, accountId: 3, debit: 50000000, credit: 0, description: 'نقدية بالبنك' }, // 500,000 ريال
+  { entryId: entry1Id, accountId: 17, debit: 0, credit: 50000000, description: 'رأس المال' },
+]);
+
+// قيد 2: مبيعات نقدية
+const entry2 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-002',
+  entryDate: new Date('2025-01-05'),
+  description: 'مبيعات نقدية',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry2Id = entry2[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry2Id, accountId: 2, debit: 1500000, credit: 0, description: 'نقدية بالصندوق' }, // 15,000 ريال
+  { entryId: entry2Id, accountId: 20, debit: 0, credit: 1500000, description: 'إيرادات مبيعات' },
+]);
+
+// قيد 3: مبيعات آجلة
+const entry3 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-003',
+  entryDate: new Date('2025-01-07'),
+  description: 'مبيعات آجلة - شركة النور',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry3Id = entry3[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry3Id, accountId: 4, debit: 2500000, credit: 0, description: 'عملاء' }, // 25,000 ريال
+  { entryId: entry3Id, accountId: 20, debit: 0, credit: 2500000, description: 'إيرادات مبيعات' },
+]);
+
+// قيد 4: مبيعات بالبطاقة
+const entry4 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-004',
+  entryDate: new Date('2025-01-10'),
+  description: 'مبيعات بالبطاقة',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry4Id = entry4[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry4Id, accountId: 3, debit: 3200000, credit: 0, description: 'بنك' }, // 32,000 ريال
+  { entryId: entry4Id, accountId: 20, debit: 0, credit: 3200000, description: 'إيرادات مبيعات' },
+]);
+
+// قيد 5: مشتريات نقدية
+const entry5 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-005',
+  entryDate: new Date('2025-01-12'),
+  description: 'مشتريات بضاعة',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry5Id = entry5[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry5Id, accountId: 5, debit: 1800000, credit: 0, description: 'مخزون' }, // 18,000 ريال
+  { entryId: entry5Id, accountId: 2, debit: 0, credit: 1800000, description: 'نقدية' },
+]);
+
+// قيد 6: مشتريات آجلة
+const entry6 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-006',
+  entryDate: new Date('2025-01-15'),
+  description: 'مشتريات آجلة',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry6Id = entry6[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry6Id, accountId: 5, debit: 2200000, credit: 0, description: 'مخزون' }, // 22,000 ريال
+  { entryId: entry6Id, accountId: 11, debit: 0, credit: 2200000, description: 'موردون' },
+]);
+
+// قيد 7: رواتب الشهر
+const entry7 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-007',
+  entryDate: new Date('2025-01-25'),
+  description: 'رواتب يناير 2025',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry7Id = entry7[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry7Id, accountId: 24, debit: 3100000, credit: 0, description: 'مصروفات رواتب' }, // 31,000 ريال
+  { entryId: entry7Id, accountId: 3, debit: 0, credit: 3100000, description: 'بنك' },
+]);
+
+// قيد 8: رواتب مستحقة
+const entry8 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-008',
+  entryDate: new Date('2025-01-31'),
+  description: 'رواتب مستحقة - يناير',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry8Id = entry8[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry8Id, accountId: 24, debit: 3100000, credit: 0, description: 'مصروفات رواتب' },
+  { entryId: entry8Id, accountId: 13, debit: 0, credit: 3100000, description: 'رواتب مستحقة' },
+]);
+
+// قيد 9: مصروفات إيجار
+const entry9 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-009',
+  entryDate: new Date('2025-01-05'),
+  description: 'إيجار المكتب - يناير',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry9Id = entry9[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry9Id, accountId: 25, debit: 1200000, credit: 0, description: 'مصروفات إيجار' }, // 12,000 ريال
+  { entryId: entry9Id, accountId: 3, debit: 0, credit: 1200000, description: 'بنك' },
+]);
+
+// قيد 10: مصروفات متنوعة
+const entry10 = await db.insert(schema.journalEntries).values({
+  entryNumber: 'JE-2025-010',
+  entryDate: new Date('2025-01-20'),
+  description: 'مصروفات متنوعة (كهرباء + صيانة)',
+  organizationId: 1,
+  branchId: 1,
+  currencyId: 1,
+  createdBy: null,
+});
+const entry10Id = entry10[0].insertId;
+await db.insert(schema.journalEntryLines).values([
+  { entryId: entry10Id, accountId: 26, debit: 800000, credit: 0, description: 'كهرباء' }, // 8,000 ريال
+  { entryId: entry10Id, accountId: 27, debit: 500000, credit: 0, description: 'صيانة' }, // 5,000 ريال
+  { entryId: entry10Id, accountId: 2, debit: 0, credit: 1300000, description: 'نقدية' },
+]);
+
+console.log('✅ تم إضافة 10 قيود يومية\n');
+
+// ============ 12. سندات القبض ============
+console.log('💵 إضافة سندات القبض...');
+
+const receipts = await db.insert(schema.vouchers).values([
+  {
+    voucherNumber: 'RV-2025-001',
+    voucherDate: new Date('2025-01-08'),
+    type: 'receipt',
+    amount: 1000000, // 10,000 ريال
+    currencyId: 1,
+    fromAccount: 'شركة النور التجارية',
+    toAccount: 'صندوق الفرع الرئيسي',
+    description: 'تحصيل جزئي من عميل',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'RV-2025-002',
+    voucherDate: new Date('2025-01-12'),
+    type: 'receipt',
+    amount: 1500000, // 15,000 ريال
+    currencyId: 1,
+    fromAccount: 'مؤسسة الفجر',
+    toAccount: 'البنك الأهلي',
+    description: 'تحصيل كامل من عميل',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'RV-2025-003',
+    voucherDate: new Date('2025-01-18'),
+    type: 'receipt',
+    amount: 2500000, // 25,000 ريال
+    currencyId: 1,
+    fromAccount: 'شركة الأمل',
+    toAccount: 'بنك الراجحي',
+    description: 'تحصيل فاتورة رقم INV-125',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'RV-2025-004',
+    voucherDate: new Date('2025-01-22'),
+    type: 'receipt',
+    amount: 800000, // 8,000 ريال
+    currencyId: 1,
+    fromAccount: 'عميل نقدي',
+    toAccount: 'صندوق الفرع الرئيسي',
+    description: 'مبيعات نقدية',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'RV-2025-005',
+    voucherDate: new Date('2025-01-28'),
+    type: 'receipt',
+    amount: 3500000, // 35,000 ريال
+    currencyId: 1,
+    fromAccount: 'شركة النور التجارية',
+    toAccount: 'البنك الأهلي',
+    description: 'تسديد باقي الفاتورة',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+]);
+
+console.log('✅ تم إضافة 5 سندات قبض\n');
+
+// ============ 13. سندات الصرف ============
+console.log('💸 إضافة سندات الصرف...');
+
+const payments = await db.insert(schema.vouchers).values([
+  {
+    voucherNumber: 'PV-2025-001',
+    voucherDate: new Date('2025-01-10'),
+    type: 'payment',
+    amount: 1800000, // 18,000 ريال
+    currencyId: 1,
+    fromAccount: 'صندوق الفرع الرئيسي',
+    toAccount: 'مورد البضاعة الأول',
+    description: 'سداد مشتريات',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'PV-2025-002',
+    voucherDate: new Date('2025-01-15'),
+    type: 'payment',
+    amount: 1200000, // 12,000 ريال
+    currencyId: 1,
+    fromAccount: 'بنك الراجحي',
+    toAccount: 'مالك العقار',
+    description: 'إيجار المكتب - يناير',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'PV-2025-003',
+    voucherDate: new Date('2025-01-20'),
+    type: 'payment',
+    amount: 800000, // 8,000 ريال
+    currencyId: 1,
+    fromAccount: 'صندوق الفرع الرئيسي',
+    toAccount: 'شركة الكهرباء',
+    description: 'فاتورة كهرباء - يناير',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'PV-2025-004',
+    voucherDate: new Date('2025-01-25'),
+    type: 'payment',
+    amount: 3100000, // 31,000 ريال
+    currencyId: 1,
+    fromAccount: 'البنك الأهلي',
+    toAccount: 'الموظفين',
+    description: 'رواتب يناير 2025',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+  {
+    voucherNumber: 'PV-2025-005',
+    voucherDate: new Date('2025-01-30'),
+    type: 'payment',
+    amount: 500000, // 5,000 ريال
+    currencyId: 1,
+    fromAccount: 'صندوق الفرع الرئيسي',
+    toAccount: 'شركة الصيانة',
+    description: 'صيانة المعدات',
+    organizationId: 1,
+    branchId: 1,
+    createdBy: null,
+  },
+]);
+
+console.log('✅ تم إضافة 5 سندات صرف\n');
+
 // ============ الانتهاء ============
 await connection.end();
 
@@ -308,5 +620,8 @@ console.log('   - 5 أنواع حسابات تحليلية / Analytical Account 
 console.log('   - 9 حسابات تحليلية / Analytical Accounts');
 console.log('   - 3 موظفين / Employees');
 console.log('   - 3 منتجات / Products');
+console.log('   - 10 قيود يومية / Journal Entries');
+console.log('   - 5 سندات قبض / Receipt Vouchers');
+console.log('   - 5 سندات صرف / Payment Vouchers');
 console.log('\n🎉 النظام جاهز للاستخدام!');
 console.log('🎉 System is ready to use!\n');
