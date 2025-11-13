@@ -1,230 +1,298 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LineChart, Download, Printer, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { trpc } from "@/lib/trpc";
+import { FileDown, Printer, Calendar, PieChart } from "lucide-react";
+import { useState } from "react";
+import { useParams } from "wouter";
 
 export default function IncomeStatement() {
-  // بيانات وهمية للعرض
-  const revenues = [
-    { name: "مبيعات المنتجات", amount: 450000 },
-    { name: "مبيعات الخدمات", amount: 180000 },
-    { name: "إيرادات أخرى", amount: 20000 },
-  ];
+  const { id } = useParams<{ id: string }>();
+  const organizationId = parseInt(id || "0");
+  const { user } = useAuth();
 
-  const costOfSales = [
-    { name: "تكلفة البضاعة المباعة", amount: 280000 },
-  ];
+  // الفترة الزمنية
+  const [fromDate, setFromDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const operatingExpenses = [
-    { name: "الرواتب والأجور", amount: 120000 },
-    { name: "الإيجار", amount: 48000 },
-    { name: "الكهرباء والماء", amount: 12000 },
-    { name: "مصاريف التسويق", amount: 25000 },
-    { name: "مصاريف إدارية", amount: 15000 },
-  ];
+  // جلب دليل الحسابات
+  const { data: accounts = [] } = trpc.accounts.list.useQuery({ organizationId });
 
-  const otherExpenses = [
-    { name: "فوائد القروض", amount: 10000 },
-  ];
+  // تصنيف الحسابات حسب النوع
+  const revenues = accounts.filter(acc => acc.type === 'إيرادات');
+  const expenses = accounts.filter(acc => acc.type === 'مصروفات');
 
-  const totalRevenues = revenues.reduce((sum, item) => sum + item.amount, 0);
-  const totalCostOfSales = costOfSales.reduce((sum, item) => sum + item.amount, 0);
-  const grossProfit = totalRevenues - totalCostOfSales;
-  const totalOperatingExpenses = operatingExpenses.reduce((sum, item) => sum + item.amount, 0);
-  const operatingProfit = grossProfit - totalOperatingExpenses;
-  const totalOtherExpenses = otherExpenses.reduce((sum, item) => sum + item.amount, 0);
-  const netProfit = operatingProfit - totalOtherExpenses;
+  // بيانات تجريبية للأرصدة (سيتم ربطها بالقيود المحاسبية لاحقاً)
+  const getBalance = (accountId: number) => {
+    // TODO: حساب الرصيد الفعلي من القيود المحاسبية خلال الفترة
+    return Math.floor(Math.random() * 50000);
+  };
 
-  const grossProfitMargin = ((grossProfit / totalRevenues) * 100).toFixed(1);
-  const operatingProfitMargin = ((operatingProfit / totalRevenues) * 100).toFixed(1);
-  const netProfitMargin = ((netProfit / totalRevenues) * 100).toFixed(1);
+  // حساب المجاميع
+  const totalRevenues = revenues.reduce((sum, acc) => sum + getBalance(acc.id), 0);
+  const totalExpenses = expenses.reduce((sum, acc) => sum + getBalance(acc.id), 0);
+  const netIncome = totalRevenues - totalExpenses;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExport = () => {
+    // TODO: تصدير إلى Excel
+    console.log("Export to Excel");
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <LineChart className="h-8 w-8 text-purple-600" />
-            قائمة الدخل
-          </h1>
-          <p className="text-muted-foreground mt-1">قائمة الأرباح والخسائر</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Printer className="h-4 w-4 ml-2" />
-            طباعة
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 ml-2" />
-            تصدير PDF
-          </Button>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>الفترة الزمنية</CardTitle>
-          <CardDescription>اختر الفترة المراد عرض قائمة الدخل لها</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="from-date">من تاريخ</Label>
-              <Input
-                id="from-date"
-                type="date"
-                defaultValue="2025-01-01"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="to-date">إلى تاريخ</Label>
-              <Input
-                id="to-date"
-                type="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            <div className="flex items-end">
-              <Button className="w-full">
-                <Calendar className="h-4 w-4 ml-2" />
-                عرض التقرير
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">هامش الربح الإجمالي</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{grossProfitMargin}%</div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">هامش الربح التشغيلي</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{operatingProfitMargin}%</div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">هامش صافي الربح</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{netProfitMargin}%</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Income Statement */}
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة الدخل</CardTitle>
-          <CardDescription>تفاصيل الإيرادات والمصروفات</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* الإيرادات */}
+    <DashboardLayout>
+      <div className="container mx-auto p-6 space-y-6" dir="rtl">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-lg mb-3 text-green-700 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              الإيرادات
-            </h3>
-            <div className="space-y-2 pr-6">
-              {revenues.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">{item.name}</span>
-                  <span className="font-medium text-green-600">{item.amount.toLocaleString()} ر.س</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center py-2 font-semibold text-green-700">
-                <span>إجمالي الإيرادات</span>
-                <span>{totalRevenues.toLocaleString()} ر.س</span>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              قائمة الدخل
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              قائمة الأرباح والخسائر - الإيرادات والمصروفات وصافي الدخل
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint}>
+              <Printer className="h-4 w-4 ml-2" />
+              طباعة
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+              <FileDown className="h-4 w-4 ml-2" />
+              تصدير
+            </Button>
+          </div>
+        </div>
+
+        {/* Date Filter */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-indigo-600" />
+              الفترة المحاسبية
+            </CardTitle>
+            <CardDescription>حدد الفترة الزمنية لقائمة الدخل</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fromDate">من تاريخ</Label>
+                <Input
+                  id="fromDate"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="toDate">إلى تاريخ</Label>
+                <Input
+                  id="toDate"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* تكلفة المبيعات */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-red-700 flex items-center gap-2">
-              <TrendingDown className="h-5 w-5" />
-              تكلفة المبيعات
-            </h3>
-            <div className="space-y-2 pr-6">
-              {costOfSales.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">{item.name}</span>
-                  <span className="font-medium text-red-600">({item.amount.toLocaleString()}) ر.س</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Income Statement */}
+        <Card>
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-indigo-600" />
+              قائمة الدخل التفصيلية
+            </CardTitle>
+            <CardDescription>
+              من {new Date(fromDate).toLocaleDateString('ar-EG')} إلى {new Date(toDate).toLocaleDateString('ar-EG')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableBody>
+                {/* Revenues Section */}
+                <TableRow className="bg-green-100">
+                  <TableCell colSpan={2} className="font-bold text-green-700 text-lg">
+                    الإيرادات
+                  </TableCell>
+                </TableRow>
+                {revenues.length > 0 ? (
+                  <>
+                    {revenues.map((account) => {
+                      const balance = getBalance(account.id);
+                      return (
+                        <TableRow key={account.id} className="hover:bg-green-50/30">
+                          <TableCell className="pr-8">
+                            <div className="font-medium">{account.name}</div>
+                            <div className="text-sm text-muted-foreground">{account.code}</div>
+                          </TableCell>
+                          <TableCell className="text-left font-semibold w-48">
+                            {balance.toLocaleString('ar-EG')}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow className="bg-green-200 font-bold">
+                      <TableCell className="pr-8">إجمالي الإيرادات</TableCell>
+                      <TableCell className="text-left text-green-700 text-lg">
+                        {totalRevenues.toLocaleString('ar-EG')}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center text-muted-foreground py-4">
+                      لا توجد حسابات إيرادات
+                    </TableCell>
+                  </TableRow>
+                )}
 
-          {/* مجمل الربح */}
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center font-bold text-lg">
-              <span className="text-green-800">مجمل الربح</span>
-              <span className="text-green-600">{grossProfit.toLocaleString()} ر.س</span>
-            </div>
-          </div>
+                {/* Expenses Section */}
+                <TableRow className="bg-red-100">
+                  <TableCell colSpan={2} className="font-bold text-red-700 text-lg">
+                    المصروفات
+                  </TableCell>
+                </TableRow>
+                {expenses.length > 0 ? (
+                  <>
+                    {expenses.map((account) => {
+                      const balance = getBalance(account.id);
+                      return (
+                        <TableRow key={account.id} className="hover:bg-red-50/30">
+                          <TableCell className="pr-8">
+                            <div className="font-medium">{account.name}</div>
+                            <div className="text-sm text-muted-foreground">{account.code}</div>
+                          </TableCell>
+                          <TableCell className="text-left font-semibold">
+                            ({balance.toLocaleString('ar-EG')})
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow className="bg-red-200 font-bold">
+                      <TableCell className="pr-8">إجمالي المصروفات</TableCell>
+                      <TableCell className="text-left text-red-700 text-lg">
+                        ({totalExpenses.toLocaleString('ar-EG')})
+                      </TableCell>
+                    </TableRow>
+                  </>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center text-muted-foreground py-4">
+                      لا توجد حسابات مصروفات
+                    </TableCell>
+                  </TableRow>
+                )}
 
-          {/* المصروفات التشغيلية */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-orange-700">المصروفات التشغيلية</h3>
-            <div className="space-y-2 pr-6">
-              {operatingExpenses.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">{item.name}</span>
-                  <span className="font-medium text-orange-600">({item.amount.toLocaleString()}) ر.س</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center py-2 font-semibold text-orange-700">
-                <span>إجمالي المصروفات التشغيلية</span>
-                <span>({totalOperatingExpenses.toLocaleString()}) ر.س</span>
+                {/* Net Income */}
+                <TableRow className={`${
+                  netIncome >= 0 
+                    ? 'bg-gradient-to-r from-green-300 to-emerald-300' 
+                    : 'bg-gradient-to-r from-red-300 to-rose-300'
+                } font-bold text-lg`}>
+                  <TableCell className="pr-8">
+                    {netIncome >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
+                  </TableCell>
+                  <TableCell className={`text-left text-xl ${
+                    netIncome >= 0 ? 'text-green-800' : 'text-red-800'
+                  }`}>
+                    {netIncome >= 0 
+                      ? netIncome.toLocaleString('ar-EG')
+                      : `(${Math.abs(netIncome).toLocaleString('ar-EG')})`
+                    }
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-green-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-700">إجمالي الإيرادات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-700">
+                {totalRevenues.toLocaleString('ar-EG')}
               </div>
-            </div>
-          </div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {revenues.length} حساب إيراد
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* الربح التشغيلي */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center font-bold text-lg">
-              <span className="text-blue-800">الربح التشغيلي</span>
-              <span className="text-blue-600">{operatingProfit.toLocaleString()} ر.س</span>
-            </div>
-          </div>
+          <Card className="bg-red-50 border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-700">إجمالي المصروفات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-700">
+                {totalExpenses.toLocaleString('ar-EG')}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {expenses.length} حساب مصروف
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* المصروفات الأخرى */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-red-700">المصروفات الأخرى</h3>
-            <div className="space-y-2 pr-6">
-              {otherExpenses.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">{item.name}</span>
-                  <span className="font-medium text-red-600">({item.amount.toLocaleString()}) ر.س</span>
+          <Card className={`${
+            netIncome >= 0 
+              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300' 
+              : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-300'
+          }`}>
+            <CardHeader>
+              <CardTitle className={netIncome >= 0 ? 'text-green-700' : 'text-red-700'}>
+                {netIncome >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-3xl font-bold ${
+                netIncome >= 0 ? 'text-green-700' : 'text-red-700'
+              }`}>
+                {Math.abs(netIncome).toLocaleString('ar-EG')}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {netIncome >= 0 ? 'ربح' : 'خسارة'} الفترة
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Profit Margin */}
+        {totalRevenues > 0 && (
+          <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+            <CardHeader>
+              <CardTitle>نسب الربحية</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">هامش الربح</div>
+                  <div className="text-2xl font-bold text-indigo-700">
+                    {((netIncome / totalRevenues) * 100).toFixed(2)}%
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* صافي الربح */}
-          <div className={`p-6 rounded-lg ${netProfit >= 0 ? 'bg-purple-50' : 'bg-red-50'}`}>
-            <div className="flex justify-between items-center font-bold text-xl">
-              <span className={netProfit >= 0 ? 'text-purple-800' : 'text-red-800'}>
-                {netProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
-              </span>
-              <span className={netProfit >= 0 ? 'text-purple-600' : 'text-red-600'}>
-                {netProfit >= 0 ? '' : '('}{Math.abs(netProfit).toLocaleString()}{netProfit >= 0 ? '' : ')'} ر.س
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">نسبة المصروفات إلى الإيرادات</div>
+                  <div className="text-2xl font-bold text-purple-700">
+                    {((totalExpenses / totalRevenues) * 100).toFixed(2)}%
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

@@ -25,6 +25,12 @@ import BalanceSheet from "./pages/BalanceSheet";
 import IncomeStatement from "./pages/IncomeStatement";
 import AccountStatement from "./pages/AccountStatement";
 import Organizations from "./pages/Organizations";
+import AIHub from "./pages/AIHub";
+import SmartJournalEntry from "./pages/SmartJournalEntry";
+import ChatHistory from "./pages/ChatHistory";
+import UnitDetails from "./pages/UnitDetails";
+import OrganizationDetails from "./pages/OrganizationDetails";
+import GeneralLedger from "./pages/GeneralLedger";
 
 function Router() {
   return (
@@ -51,6 +57,12 @@ function Router() {
       <Route path="/balance-sheet" component={() => <DashboardLayout><BalanceSheet /></DashboardLayout>} />
       <Route path="/income-statement" component={() => <DashboardLayout><IncomeStatement /></DashboardLayout>} />
       <Route path="/account-statement" component={() => <DashboardLayout><AccountStatement /></DashboardLayout>} />
+      <Route path="/general-ledger" component={() => <DashboardLayout><GeneralLedger /></DashboardLayout>} />
+      <Route path="/ai-hub" component={() => <DashboardLayout><AIHub /></DashboardLayout>} />
+      <Route path="/smart-journal-entry" component={() => <DashboardLayout><SmartJournalEntry /></DashboardLayout>} />
+      <Route path="/chat-history" component={() => <DashboardLayout><ChatHistory /></DashboardLayout>} />
+      <Route path="/units/:id" component={() => <DashboardLayout><UnitDetails /></DashboardLayout>} />
+      <Route path="/organizations/:id" component={() => <DashboardLayout><OrganizationDetails /></DashboardLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
