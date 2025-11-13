@@ -18,19 +18,24 @@ import {
 import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function ChatHistory() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: sessions, isLoading, refetch } = trpc.ai.getSessions.useQuery();
+  // TODO: إضافة APIs للجلسات
+  const sessions: any[] = [];
+  const isLoading = false;
+  const refetch = () => {};
 
-  const createSession = trpc.ai.createSession.useMutation({
-    onSuccess: (data) => {
-      setLocation(`/ai?session=${data.sessionId}`);
+  const createSession = {
+    mutate: (data: any) => {
+      toast.error("هذه الميزة قيد التطوير");
     },
-  });
+    isPending: false,
+  };
 
   const handleNewChat = () => {
     createSession.mutate({
@@ -38,7 +43,7 @@ export default function ChatHistory() {
     });
   };
 
-  const filteredSessions = sessions?.filter(session => 
+  const filteredSessions = sessions?.filter((session: any) => 
     session.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -136,7 +141,7 @@ export default function ChatHistory() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {filteredSessions.map((session) => (
+            {filteredSessions.map((session: any) => (
               <Link key={session.id} href={`/ai?session=${session.id}`}>
                 <Card className="p-6 hover:shadow-xl transition-all cursor-pointer group border-2 border-transparent hover:border-blue-500">
                   <div className="flex items-center justify-between">
@@ -189,13 +194,13 @@ export default function ChatHistory() {
             </Card>
             <Card className="p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
-                {sessions.filter(s => s.status === "active").length}
+                {sessions.filter((s: any) => s.status === "active").length}
               </div>
               <div className="text-sm text-muted-foreground">محادثات نشطة</div>
             </Card>
             <Card className="p-6 text-center">
               <div className="text-3xl font-bold text-purple-600 mb-2">
-                {sessions.filter(s => s.status === "completed").length}
+                {sessions.filter((s: any) => s.status === "completed").length}
               </div>
               <div className="text-sm text-muted-foreground">محادثات مكتملة</div>
             </Card>

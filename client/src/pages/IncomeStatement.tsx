@@ -19,12 +19,12 @@ export default function IncomeStatement() {
   const [fromDate, setFromDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // جلب دليل الحسابات
-  const { data: accounts = [] } = trpc.accounts.list.useQuery({ organizationId });
+  // TODO: جلب دليل الحسابات من API
+  const accounts: any[] = [];
 
   // تصنيف الحسابات حسب النوع
-  const revenues = accounts.filter(acc => acc.type === 'إيرادات');
-  const expenses = accounts.filter(acc => acc.type === 'مصروفات');
+  const revenues = accounts.filter((acc: any) => acc.type === 'إيرادات');
+  const expenses = accounts.filter((acc: any) => acc.type === 'مصروفات');
 
   // بيانات تجريبية للأرصدة (سيتم ربطها بالقيود المحاسبية لاحقاً)
   const getBalance = (accountId: number) => {
@@ -33,8 +33,8 @@ export default function IncomeStatement() {
   };
 
   // حساب المجاميع
-  const totalRevenues = revenues.reduce((sum, acc) => sum + getBalance(acc.id), 0);
-  const totalExpenses = expenses.reduce((sum, acc) => sum + getBalance(acc.id), 0);
+  const totalRevenues = revenues.reduce((sum: any, acc: any) => sum + getBalance(acc.id), 0);
+  const totalExpenses = expenses.reduce((sum: any, acc: any) => sum + getBalance(acc.id), 0);
   const netIncome = totalRevenues - totalExpenses;
 
   const handlePrint = () => {
@@ -126,7 +126,7 @@ export default function IncomeStatement() {
                 </TableRow>
                 {revenues.length > 0 ? (
                   <>
-                    {revenues.map((account) => {
+                    {revenues.map((account: any) => {
                       const balance = getBalance(account.id);
                       return (
                         <TableRow key={account.id} className="hover:bg-green-50/30">
@@ -163,7 +163,7 @@ export default function IncomeStatement() {
                 </TableRow>
                 {expenses.length > 0 ? (
                   <>
-                    {expenses.map((account) => {
+                    {expenses.map((account: any) => {
                       const balance = getBalance(account.id);
                       return (
                         <TableRow key={account.id} className="hover:bg-red-50/30">

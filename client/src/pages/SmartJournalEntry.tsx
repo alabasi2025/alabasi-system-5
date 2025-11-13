@@ -43,23 +43,28 @@ export default function SmartJournalEntry() {
   const [manualDescription, setManualDescription] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch accounts for manual mode
-  const { data: accounts } = trpc.accounts.listByOrganization.useQuery(
-    { organizationId: orgId },
-    { enabled: orgId > 0 }
-  );
+  // TODO: إضافة APIs للحسابات والذكاء الاصطناعي
+  const accounts: any[] = [];
 
-  const generateEntry = trpc.accounting.generateJournalEntry.useMutation({
-    onSuccess: (data) => {
+  const generateEntry = {
+    mutate: (data: any) => {
+      setIsGenerating(false);
+      toast.error("هذه الميزة قيد التطوير");
+    },
+    isLoading: false,
+  };
+  
+  if (false) {
+    const onSuccess = (data: any) => {
       setProposedEntry(data);
       setIsGenerating(false);
       toast.success("تم إنشاء القيد المحاسبي بنجاح");
-    },
-    onError: (error) => {
+    };
+    const onError = (error: any) => {
       setIsGenerating(false);
       toast.error(error.message || "فشل في إنشاء القيد المحاسبي");
-    },
-  });
+    };
+  }
 
   const handleGenerate = () => {
     if (!description.trim()) {
@@ -119,7 +124,7 @@ export default function SmartJournalEntry() {
   };
 
   const selectAccount = (lineId: string, accountCode: string) => {
-    const account = accounts?.find(a => a.accountCode === accountCode);
+    const account = accounts?.find((a: any) => a.accountCode === accountCode);
     if (account) {
       updateLine(lineId, "accountCode", account.accountCode);
       updateLine(lineId, "accountName", account.accountName);
@@ -399,7 +404,7 @@ export default function SmartJournalEntry() {
                                 <SelectValue placeholder="اختر حساب" />
                               </SelectTrigger>
                               <SelectContent>
-                                {accounts?.map((account) => (
+                                {accounts?.map((account: any) => (
                                   <SelectItem key={account.id} value={account.accountCode}>
                                     {account.accountCode} - {account.accountName}
                                   </SelectItem>

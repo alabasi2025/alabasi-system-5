@@ -123,7 +123,12 @@ export default function AIHub() {
     "شراء معدات بمبلغ 15000 ريال بالتقسيط",
   ];
 
-  const processCommandMutation = trpc.ai.processCommand.useMutation();
+  // TODO: إضافة processCommand API
+  const processCommandMutation = {
+    mutateAsync: async (data: any) => {
+      throw new Error("هذه الميزة قيد التطوير");
+    },
+  };
 
   const handleSend = async () => {
     if (!message.trim() || isProcessing) return;

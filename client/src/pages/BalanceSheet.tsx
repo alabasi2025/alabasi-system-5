@@ -18,13 +18,13 @@ export default function BalanceSheet() {
   // تاريخ القائمة
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // جلب دليل الحسابات
-  const { data: accounts = [] } = trpc.accounts.list.useQuery({ organizationId });
+  // TODO: جلب دليل الحسابات من API
+  const accounts: any[] = [];
 
   // تصنيف الحسابات حسب النوع
-  const assets = accounts.filter(acc => acc.type === 'أصول');
-  const liabilities = accounts.filter(acc => acc.type === 'خصوم');
-  const equity = accounts.filter(acc => acc.type === 'حقوق ملكية');
+  const assets = accounts.filter((acc: any) => acc.type === 'أصول');
+  const liabilities = accounts.filter((acc: any) => acc.type === 'خصوم');
+  const equity = accounts.filter((acc: any) => acc.type === 'حقوق ملكية');
 
   // بيانات تجريبية للأرصدة (سيتم ربطها بالقيود المحاسبية لاحقاً)
   const getBalance = (accountId: number) => {
@@ -33,9 +33,9 @@ export default function BalanceSheet() {
   };
 
   // حساب المجاميع
-  const totalAssets = assets.reduce((sum, acc) => sum + getBalance(acc.id), 0);
-  const totalLiabilities = liabilities.reduce((sum, acc) => sum + getBalance(acc.id), 0);
-  const totalEquity = equity.reduce((sum, acc) => sum + getBalance(acc.id), 0);
+  const totalAssets = assets.reduce((sum: any, acc: any) => sum + getBalance(acc.id), 0);
+  const totalLiabilities = liabilities.reduce((sum: any, acc: any) => sum + getBalance(acc.id), 0);
+  const totalEquity = equity.reduce((sum: any, acc: any) => sum + getBalance(acc.id), 0);
   const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
 
   const handlePrint = () => {
@@ -118,7 +118,7 @@ export default function BalanceSheet() {
                 <TableBody>
                   {assets.length > 0 ? (
                     <>
-                      {assets.map((account) => {
+                      {assets.map((account: any) => {
                         const balance = getBalance(account.id);
                         return (
                           <TableRow key={account.id} className="hover:bg-emerald-50/30">
@@ -179,7 +179,7 @@ export default function BalanceSheet() {
                           الخصوم
                         </TableCell>
                       </TableRow>
-                      {liabilities.map((account) => {
+                      {liabilities.map((account: any) => {
                         const balance = getBalance(account.id);
                         return (
                           <TableRow key={account.id} className="hover:bg-rose-50/30">
@@ -210,7 +210,7 @@ export default function BalanceSheet() {
                           حقوق الملكية
                         </TableCell>
                       </TableRow>
-                      {equity.map((account) => {
+                      {equity.map((account: any) => {
                         const balance = getBalance(account.id);
                         return (
                           <TableRow key={account.id} className="hover:bg-purple-50/30">

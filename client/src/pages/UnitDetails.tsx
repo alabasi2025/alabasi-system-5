@@ -19,9 +19,12 @@ export default function UnitDetails() {
   const { id } = useParams();
   const unitId = parseInt(id || "0");
 
-  const { data: unit, isLoading: unitLoading } = trpc.units.getById.useQuery({ id: unitId });
-  const { data: organizations, isLoading: orgsLoading } = trpc.organizations.getByUnit.useQuery({ unitId });
-  const { data: branches, isLoading: branchesLoading } = trpc.branches.getByUnit.useQuery({ unitId });
+  const { data: unit, isLoading: unitLoading } = trpc.units.getById.useQuery(unitId);
+  // TODO: إضافة APIs للمؤسسات والفروع حسب الوحدة
+  const organizations: any[] = [];
+  const branches: any[] = [];
+  const orgsLoading = false;
+  const branchesLoading = false;
 
   const isLoading = unitLoading || orgsLoading || branchesLoading;
 

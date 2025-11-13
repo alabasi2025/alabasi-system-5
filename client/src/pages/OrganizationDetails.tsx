@@ -24,20 +24,18 @@ export default function OrganizationDetails() {
   const orgId = params?.id ? parseInt(params.id) : 0;
 
   const { data: organization, isLoading: orgLoading } = trpc.organizations.getById.useQuery(
-    { id: orgId },
+    orgId,
     { enabled: orgId > 0 }
   );
 
   const { data: unit, isLoading: unitLoading } = trpc.units.getById.useQuery(
-    { id: organization?.unitId || 0 },
+    organization?.unitId || 0,
     { enabled: !!organization?.unitId }
   );
   
-  const { data: branches, isLoading: branchesLoading } =
-    trpc.branches.getByOrganization.useQuery(
-      { organizationId: orgId },
-      { enabled: orgId > 0 }
-    );
+  // TODO: إضافة API للفروع حسب المؤسسة
+  const branches: any[] = [];
+  const branchesLoading = false;
 
   const orgsLoading = orgLoading || unitLoading;
 

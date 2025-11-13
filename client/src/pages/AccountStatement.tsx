@@ -21,20 +21,12 @@ export default function AccountStatement() {
   const [fromDate, setFromDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // جلب دليل الحسابات
-  const { data: accounts = [] } = trpc.accounts.list.useQuery({ organizationId });
+  // TODO: جلب دليل الحسابات من API
+  const accounts: any[] = [];
 
-  // جلب كشف الحساب من API
-  const { data: statementData, isLoading } = trpc.reports.accountStatement.useQuery(
-    {
-      accountId: parseInt(selectedAccountId || "0"),
-      fromDate,
-      toDate,
-    },
-    {
-      enabled: !!selectedAccountId && parseInt(selectedAccountId) > 0,
-    }
-  );
+  // TODO: جلب كشف الحساب من API
+  const statementData: any = null;
+  const isLoading = false;
 
   const movements = statementData?.movements.map((movement: any, index: number) => ({
     id: index + 1,
@@ -77,11 +69,11 @@ export default function AccountStatement() {
     },
   ] : [];
 
-  const selectedAccount = accounts.find(acc => acc.id === parseInt(selectedAccountId));
+  const selectedAccount = accounts.find((acc: any) => acc.id === parseInt(selectedAccountId));
 
   // حساب المجاميع
   const totals = movements.reduce(
-    (acc, item) => ({
+    (acc: any, item: any) => ({
       debit: acc.debit + item.debit,
       credit: acc.credit + item.credit,
     }),
@@ -142,7 +134,7 @@ export default function AccountStatement() {
                     <SelectValue placeholder="اختر الحساب" />
                   </SelectTrigger>
                   <SelectContent>
-                    {accounts.map((account) => (
+                    {accounts.map((account: any) => (
                       <SelectItem key={account.id} value={account.id.toString()}>
                         {account.code} - {account.name}
                       </SelectItem>
@@ -225,7 +217,7 @@ export default function AccountStatement() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {movements.map((movement) => (
+                        {movements.map((movement: any) => (
                           <TableRow key={movement.id} className="hover:bg-purple-50/50">
                             <TableCell className="text-center">
                               {new Date(movement.date).toLocaleDateString('ar-EG')}

@@ -193,3 +193,13 @@
 - [ ] تعديل الصفحات لتتوافق مع APIs الحالية
 - [ ] إضافة APIs المفقودة حسب الحاجة
 - [ ] اختبار التكامل الكامل
+
+## إصلاح أخطاء TypeScript في الصفحات المنسوخة
+- [ ] فحص وتحديد جميع الأخطاء في الصفحات المنسوخة
+- [ ] إصلاح خطأ Parameter 'balance' implicitly has an 'any' type في TrialBalance.tsx
+- [ ] إصلاح أخطاء UnitDetails.tsx (getByUnit API غير موجود)
+- [ ] إصلاح أخطاء OrganizationDetails.tsx إن وجدت
+- [ ] إصلاح أخطاء AIHub وSmartJournalEntry
+- [ ] إصلاح أخطاء ChatHistory
+- [ ] إصلاح أخطاء GeneralLedger وAccountStatement
+- [ ] التحقق من عدم وجود أخطاء TypeScript
