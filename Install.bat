@@ -15,7 +15,7 @@ echo 📋 جاري بدء التثبيت...
 echo.
 
 REM تشغيل سكريبت PowerShell
-powershell.exe -ExecutionPolicy Bypass -File "%~dp0Install-Alabasi5.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Install-Alabasi5.ps1"
 
 if %ERRORLEVEL% EQU 0 (
     echo.
