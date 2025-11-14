@@ -531,3 +531,13 @@
 - [x] إضافة package.json script للتشغيل على Windows (dev:win)
 - [x] إنشاء Start.bat لتشغيل النظام بنقرة واحدة
 - [x] رفع التحديثات إلى GitHub
+
+
+## مهمة عاجلة: إصلاح خطأ "Failed to fetch" في صفحة الحسابات التحليلية
+
+- [ ] فحص صفحة AnalyticalAccounts.tsx
+- [ ] فحص APIs في server/routers.ts
+- [ ] التحقق من وجود analyticalAccounts router
+- [ ] إصلاح الخطأ
+- [ ] اختبار الصفحة
+- [ ] حفظ checkpoint
